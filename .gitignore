@@ -86,3 +86,4 @@ dumps/
 
 # Build-Ausgabe (nicht ins Repo)
 out_linux/
+Data/*.db
