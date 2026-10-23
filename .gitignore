@@ -54,3 +54,38 @@ msbuild.wrn
 # OneDrive sync conflict files
 *(# Edit conflict*
 *(# Conflict*
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs und Temp
+*.log
+*.tmp
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+
+# Docker / lokal
+.env
+.env.local
+.env.*.local
+docker-compose.override.yml
+
+# Datenbanken und Dumps
+*.sqlite
+*.sqlite3
+*.db
+dumps/
