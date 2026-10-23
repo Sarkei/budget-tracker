@@ -1,0 +1,14 @@
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/data
+**/out_linux
+out_linux
+**/*.user
+**/*.md
+.dockerignore
+.gitlab-ci.yml
+docker-compose.yaml

@@ -1,0 +1,331 @@
+﻿@inject IDbContextFactory<AppDbContext> DbFactory
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(Expense == null
+                ? (IsIncome ? "Einnahme hinzufügen" : "Ausgabe hinzufügen")
+                : (IsIncome ? "Einnahme bearbeiten" : "Ausgabe bearbeiten"))
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Beschreibung *" @bind-Value="_description" Variant="Variant.Outlined"
+                              Required="true" MaxLength="200" />
+            </MudItem>
+            <MudItem xs="8">
+                <MudNumericField T="decimal" Label="Betrag *"
+                                 Value="_amount" ValueChanged="OnTotalAmountChanged"
+                                 Variant="Variant.Outlined" Min="0.01m" Format="F2" Required="true" />
+            </MudItem>
+            <MudItem xs="4">
+                <MudSelect T="string" Label="Währung" @bind-Value="_currency" Variant="Variant.Outlined">
+                    @foreach (var c in _currencies) { <MudSelectItem Value="c">@c</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="int" Label="@_paidByLabel" @bind-Value="_paidByUserId" Variant="Variant.Outlined">
+                    @foreach (var m in Members)
+                    {
+                        <MudSelectItem Value="m.UserId">@(m.User?.DisplayName ?? m.User?.Username ?? $"User {m.UserId}")</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="int?" Label="Kategorie" @bind-Value="_categoryId" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var c in _categories) { <MudSelectItem Value="@((int?)c.Id)">@c.Name</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudDatePicker Label="Datum *" @bind-Date="_date" Variant="Variant.Outlined" DateFormat="dd.MM.yyyy" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Notiz" @bind-Value="_note" Variant="Variant.Outlined" Lines="2" />
+            </MudItem>
+
+            <!-- Split section -->
+            <MudItem xs="12">
+                <MudDivider Style="border-color:#404040;" Class="my-2" />
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                    <MudText Typo="Typo.subtitle2" Style="color:#99F6E4; text-transform:uppercase; letter-spacing:.08em; font-weight:800;">Aufteilung</MudText>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <!-- % / € toggle -->
+                        <div style="display:flex; background:#1f1f1f; border:1px solid #404040; border-radius:10px; overflow:hidden;">
+                            <button @onclick='() => SetSplitMode(true)'
+                                    style="padding:4px 12px; font-size:12px; font-weight:600; border:none; cursor:pointer;
+                                           background:@(_splitByPercent ? "transparent" : "rgba(20,184,166,.18)"); color:@(_splitByPercent ? "#A3A3A3" : "#14B8A6");
+                                           transition:background 0.15s;">€</button>
+                            <button @onclick='() => SetSplitMode(false)'
+                                    style="padding:4px 12px; font-size:12px; font-weight:600; border:none; cursor:pointer;
+                                           background:@(_splitByPercent ? "rgba(20,184,166,.18)" : "transparent"); color:@(_splitByPercent ? "#14B8A6" : "#A3A3A3");
+                                           transition:background 0.15s;">%</button>
+                        </div>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary"
+                                   Disabled="@(!_splitManuallyEdited)"
+                                   OnClick="SplitEvenlyFromButton">Gleichmäßig aufteilen</MudButton>
+                    </div>
+                </div>
+                @foreach (var split in _splits)
+                {
+                    var member = Members.FirstOrDefault(m => m.UserId == split.UserId);
+                    var name = member?.User?.DisplayName ?? member?.User?.Username ?? $"User {split.UserId}";
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        <MudText Typo="Typo.body2" Style="flex:1;">@name</MudText>
+                        @if (_splitByPercent)
+                        {
+                            <MudNumericField T="decimal" Value="split.Percent"
+                                             ValueChanged="v => OnPercentChanged(split, v)"
+                                             Variant="Variant.Outlined" Min="0m" Max="100m" Format="F1"
+                                             Style="width:120px;" HideSpinButtons="true"
+                                             Adornment="Adornment.End" AdornmentText="%" />
+                        }
+                        else
+                        {
+                            <MudNumericField T="decimal" Value="split.Amount"
+                                             ValueChanged="v => OnAmountChanged(split, v)"
+                                             Variant="Variant.Outlined" Min="0m" Format="F2"
+                                             Style="width:120px;" HideSpinButtons="true" />
+                        }
+                        @if (_splitByPercent && _amount > 0)
+                        {
+                            <MudText Typo="Typo.caption" Style="color:#A3A3A3; width:60px; text-align:right;">
+                                @split.Amount.ToString("F2") @_currency
+                            </MudText>
+                        }
+                    </div>
+                }
+                @{ var splitDiff = _splitSum - _amount; }
+                @if (_amount > 0 && Math.Abs(splitDiff) >= 0.005m)
+                {
+                    <MudText Typo="Typo.caption" Style="@($"color:{(splitDiff > 0 ? "#EF5350" : "#FFA726")}")">
+                        Summe: @_splitSum.ToString("F2") / @_amount.ToString("F2") @_currency
+                        @(splitDiff > 0 ? " – zu viel!" : " – Differenz!")
+                    </MudText>
+                }
+            </MudItem>
+            <!-- Recurring expense toggle -->
+            <MudItem xs="12">
+                <MudDivider Style="border-color:#404040;" Class="my-1" />
+                <div style="display:flex; align-items:center; gap:12px; padding:4px 0;">
+                    <MudSwitch @bind-Value="_isRecurring" Color="Color.Secondary" Label="Wiederkehrende Ausgabe" />
+                </div>
+                @if (_isRecurring)
+                {
+                    <MudSelect T="RecurringInterval" @bind-Value="_recurringInterval"
+                               Label="Wiederholungsintervall" Variant="Variant.Outlined">
+                        <MudSelectItem Value="RecurringInterval.Weekly">Wöchentlich</MudSelectItem>
+                        <MudSelectItem Value="RecurringInterval.Monthly">Monatlich</MudSelectItem>
+                        <MudSelectItem Value="RecurringInterval.Quarterly">Quartalsweise</MudSelectItem>
+                        <MudSelectItem Value="RecurringInterval.Yearly">Jährlich</MudSelectItem>
+                    </MudSelect>
+                }
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Abbrechen</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="SubmitAsync"
+                   Disabled="_saving || Math.Abs(_splitSum - _amount) >= 0.005m">
+            @(_saving ? "Speichern..." : "Speichern")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public GroupExpense? Expense { get; set; }
+    [Parameter] public int GroupId { get; set; }
+    [Parameter] public int CurrentUserId { get; set; }
+    [Parameter] public List<GroupMember> Members { get; set; } = new();
+    [Parameter] public bool IsIncome { get; set; } = false;
+
+    private string _paidByLabel => IsIncome ? "Erhalten von *" : "Bezahlt von *";
+
+    private static readonly string[] _currencies = CurrencyService.GetCommonCurrencies().ToArray();
+    private List<Category> _categories = new();
+
+    private string _description = "";
+    private decimal _amount = 0;
+    private string _currency = "EUR";
+    private int _paidByUserId;
+    private int? _categoryId;
+    private DateTime? _date = DateTime.Today;
+    private string _note = "";
+    private bool _saving;
+    private bool _isRecurring;
+    private RecurringInterval _recurringInterval = RecurringInterval.Monthly;
+
+    // Split state
+    private List<SplitEntry> _splits = new();
+    private bool _splitByPercent = false;         // default: € mode
+    private bool _splitManuallyEdited = false;    // "Gleichmäßig aufteilen" disabled until user edits
+
+    private decimal _splitSum => _splits.Sum(s => s.Amount);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _categories = await db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+
+        _paidByUserId = CurrentUserId;
+
+        if (Expense != null)
+        {
+            _description = Expense.Description;
+            _amount = Expense.TotalAmount;
+            _currency = Expense.Currency;
+            _paidByUserId = Expense.PaidByUserId;
+            _categoryId = Expense.CategoryId;
+            _date = Expense.Date;
+            _note = Expense.Note ?? "";
+            _isRecurring = Expense.IsRecurring;
+            _recurringInterval = Expense.RecurringInterval ?? RecurringInterval.Monthly;
+            // Preserve IsIncome from the existing record (parameter may be false when editing)
+            IsIncome = Expense.IsIncome;
+
+            var splits = await db.ExpenseSplits.Where(s => s.GroupExpenseId == Expense.Id).ToListAsync();
+            _splits = splits.Select(s => new SplitEntry { UserId = s.UserId, Amount = s.Amount }).ToList();
+            // Compute percentages from loaded amounts
+            RecalcPercentsFromAmounts();
+            _splitManuallyEdited = true; // existing splits count as "edited"
+        }
+        else
+        {
+            InitSplitsEvenly();
+        }
+    }
+
+    private void OnTotalAmountChanged(decimal newAmount)
+    {
+        _amount = newAmount;
+        if (!_splitManuallyEdited)
+            SplitEvenly(markAsEdited: false);
+    }
+
+    private void InitSplitsEvenly()
+    {
+        _splits = Members.Select(m => new SplitEntry { UserId = m.UserId, Amount = 0, Percent = 0 }).ToList();
+        _splitManuallyEdited = false;
+        SplitEvenly(markAsEdited: false);
+    }
+
+    private void SetSplitMode(bool byPercent)
+    {
+        _splitByPercent = byPercent;
+    }
+
+    private void OnAmountChanged(SplitEntry split, decimal newVal)
+    {
+        split.Amount = newVal;
+        RecalcPercentsFromAmounts();
+        _splitManuallyEdited = true;
+    }
+
+    private void OnPercentChanged(SplitEntry split, decimal newPct)
+    {
+        split.Percent = newPct;
+        RecalcAmountsFromPercents();
+        _splitManuallyEdited = true;
+    }
+
+    private void RecalcAmountsFromPercents()
+    {
+        if (_amount <= 0) return;
+        for (int i = 0; i < _splits.Count; i++)
+            _splits[i].Amount = Math.Round(_amount * _splits[i].Percent / 100m, 2);
+        // Fix rounding remainder on first entry
+        var diff = _amount - _splits.Sum(s => s.Amount);
+        if (_splits.Count > 0) _splits[0].Amount += diff;
+    }
+
+    private void RecalcPercentsFromAmounts()
+    {
+        if (_amount <= 0) return;
+        foreach (var s in _splits)
+            s.Percent = _amount > 0 ? Math.Round(s.Amount / _amount * 100m, 2) : 0;
+    }
+
+    private void SplitEvenlyFromButton() => SplitEvenly(markAsEdited: true);
+
+    private void SplitEvenly(bool markAsEdited = true)
+    {
+        if (!_splits.Any() || _amount <= 0) return;
+        var pct = Math.Round(100m / _splits.Count, 2);
+        var pctRemainder = 100m - pct * _splits.Count;
+        for (int i = 0; i < _splits.Count; i++)
+            _splits[i].Percent = i == 0 ? pct + pctRemainder : pct;
+        RecalcAmountsFromPercents();
+        if (markAsEdited) _splitManuallyEdited = false; // reset: evenly split again, disable button
+        StateHasChanged();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_description) || _amount <= 0 || _date == null) return;
+        if (Math.Abs(_splitSum - _amount) >= 0.005m) return;
+        _saving = true;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (Expense != null)
+        {
+            var entity = await db.GroupExpenses.FindAsync(Expense.Id);
+            if (entity != null)
+            {
+                entity.Description = _description.Trim();
+                entity.TotalAmount = _amount;
+                entity.Currency = _currency;
+                entity.PaidByUserId = _paidByUserId;
+                entity.CategoryId = _categoryId;
+                entity.Date = _date!.Value;
+                entity.Note = string.IsNullOrWhiteSpace(_note) ? null : _note.Trim();
+                entity.IsRecurring = _isRecurring;
+                entity.RecurringInterval = _isRecurring ? _recurringInterval : null;
+                entity.IsIncome = IsIncome;
+
+                var oldSplits = await db.ExpenseSplits.Where(s => s.GroupExpenseId == Expense.Id).ToListAsync();
+                db.ExpenseSplits.RemoveRange(oldSplits);
+                foreach (var s in _splits.Where(s => s.Amount > 0))
+                    db.ExpenseSplits.Add(new ExpenseSplit { GroupExpenseId = Expense.Id, UserId = s.UserId, Amount = s.Amount });
+            }
+        }
+        else
+        {
+            var expense = new GroupExpense
+            {
+                GroupId = GroupId,
+                Description = _description.Trim(),
+                TotalAmount = _amount,
+                Currency = _currency,
+                PaidByUserId = _paidByUserId,
+                CategoryId = _categoryId,
+                Date = _date!.Value,
+                Note = string.IsNullOrWhiteSpace(_note) ? null : _note.Trim(),
+                IsRecurring = _isRecurring,
+                RecurringInterval = _isRecurring ? _recurringInterval : null,
+                IsIncome = IsIncome,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.GroupExpenses.Add(expense);
+            await db.SaveChangesAsync();
+
+            foreach (var s in _splits.Where(s => s.Amount > 0))
+                db.ExpenseSplits.Add(new ExpenseSplit { GroupExpenseId = expense.Id, UserId = s.UserId, Amount = s.Amount });
+        }
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private class SplitEntry
+    {
+        public int UserId { get; set; }
+        public decimal Amount { get; set; }
+        public decimal Percent { get; set; }
+    }
+}

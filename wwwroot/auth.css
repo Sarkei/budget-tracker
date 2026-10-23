@@ -1,0 +1,239 @@
+/* Auth pages (Login / Register) – Fitness Tracker tokens */
+
+html.bt-auth,
+html.bt-auth body {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #202020 0%, var(--background) 42%);
+    color: var(--foreground);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.bt-auth-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-muted);
+    border-radius: 1.5rem;
+    padding: 2.25rem;
+    width: 100%;
+    max-width: 480px;
+}
+
+.bt-auth-card--narrow {
+    max-width: 430px;
+}
+
+.bt-auth-logo {
+    color: var(--brand);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.bt-auth-title {
+    color: var(--foreground);
+    font-size: 2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.bt-auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 800;
+}
+
+.bt-auth-row {
+    display: flex;
+    gap: 12px;
+}
+
+.bt-auth-row > div {
+    flex: 1;
+}
+
+.bt-auth label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.66rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+    margin-top: 16px;
+}
+
+.bt-auth input[type='email'],
+.bt-auth input[type='password'],
+.bt-auth input[type='text'] {
+    width: 100%;
+    min-height: 50px;
+    background: #1f1f1f;
+    border: 1px solid var(--border-muted);
+    border-radius: 12px;
+    color: var(--foreground);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.bt-auth input:focus {
+    border-color: var(--brand);
+}
+
+.bt-auth-btn {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    background: color-mix(in srgb, var(--brand) 15%, transparent);
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    color: var(--brand);
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-top: 24px;
+    padding: 13px;
+    transition: background 0.2s;
+}
+
+.bt-auth-btn:hover {
+    background: color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+.bt-auth-error {
+    background: color-mix(in srgb, var(--error) 12%, #1a1a1a);
+    border: 1px solid var(--error);
+    border-radius: 12px;
+    color: var(--error);
+    font-size: 0.875rem;
+    margin-top: 16px;
+    padding: 10px 14px;
+}
+
+.bt-auth-link {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.bt-auth-link a {
+    color: var(--brand-muted);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.bt-auth-link a:hover {
+    text-decoration: underline;
+}
+
+.bt-auth input.invalid {
+    border-color: var(--error) !important;
+}
+
+.bt-auth-hint {
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent);
+    border-radius: 12px;
+    color: var(--brand-muted);
+    font-size: 0.82rem;
+    margin-top: 16px;
+    padding: 10px 14px;
+}
+
+.pw-strength {
+    margin-top: 8px;
+}
+
+.pw-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-muted);
+    overflow: hidden;
+}
+
+.pw-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.3s, background 0.3s;
+}
+
+.pw-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.pw-rules {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.6;
+}
+
+.pw-rules span {
+    display: block;
+}
+
+.pw-rules span.ok {
+    color: var(--success);
+}
+
+.pw-rules span.fail {
+    color: var(--text-muted);
+}
+
+.match-hint {
+    font-size: 0.72rem;
+    margin-top: 5px;
+}
+
+.match-ok {
+    color: var(--success);
+}
+
+.match-fail {
+    color: var(--error);
+}
+
+.bt-auth-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    html.bt-auth,
+    html.bt-auth body {
+        align-items: flex-start;
+        padding: 22px 14px;
+    }
+
+    .bt-auth-card {
+        border-radius: 22px;
+        padding: 24px 18px;
+    }
+
+    .bt-auth-title {
+        font-size: 1.7rem;
+    }
+}

@@ -1,0 +1,44 @@
+@page
+@model BudgetTracker.Pages.LoginModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Anmelden – Budget Tracker";
+}
+<!DOCTYPE html>
+<html lang="de" class="bt-auth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/auth.css" />
+</head>
+<body>
+    <div class="bt-auth-card bt-auth-card--narrow">
+        <div class="bt-auth-logo">BUDGET TRACKER</div>
+        <h1 class="bt-auth-title">Willkommen zurück</h1>
+        <p class="bt-auth-subtitle">Bitte melde dich an, um fortzufahren.</p>
+
+        <form method="post" class="bt-auth">
+            @Html.AntiForgeryToken()
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="bt-auth-error">@Model.ErrorMessage</div>
+            }
+
+            <label for="email">E-Mail-Adresse</label>
+            <input id="email" name="email" type="email" autocomplete="email" autofocus
+                   value="@Model.Email" required />
+
+            <label for="password">Passwort</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+            <button type="submit" class="bt-auth-btn">Anmelden</button>
+        </form>
+
+        <p class="bt-auth-link">Noch kein Konto? <a href="/register">Registrieren</a></p>
+    </div>
+</body>
+</html>

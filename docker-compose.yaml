@@ -1,0 +1,25 @@
+services:
+  budget-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: budget-tracker
+    restart: unless-stopped
+    ports:
+      - "11111:11111"
+    volumes:
+      # SQLite database persisted on host — change ./data to any path on your NAS
+      - ./data:/app/data
+    environment:
+      - DATA_PATH=/app/data
+      - ASPNETCORE_ENVIRONMENT=Production
+    networks:
+      - default
+      - cloudflare
+
+networks:
+  default:
+    driver: bridge
+  cloudflare:
+    external: true
+    name: cloudflare-tunnel-net

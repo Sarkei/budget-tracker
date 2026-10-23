@@ -1,0 +1,20 @@
+<div class="bt-stat-card">
+    <div class="bt-stat-icon @IconClass">
+        <MudIcon Icon="@Icon" Size="MudBlazor.Size.Small" />
+    </div>
+    <p class="bt-stat-label">@Label</p>
+    <p class="bt-stat-value @ValueClass">@Value</p>
+    @if (!string.IsNullOrEmpty(Hint))
+    {
+        <p class="bt-stat-hint">@Hint</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+    [Parameter, EditorRequired] public string Icon { get; set; } = Icons.Material.Filled.Info;
+    [Parameter] public string IconClass { get; set; } = "bt-stat-icon--brand";
+    [Parameter] public string ValueClass { get; set; } = "";
+}

@@ -1,0 +1,71 @@
+﻿html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    color: #E0E0E0;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* MudBlazor dark theme overrides */
+.mud-drawer {
+    background-color: #161616 !important;
+}
+
+.mud-nav-link {
+    color: #E0E0E0 !important;
+    border-radius: 8px !important;
+    margin: 2px 8px !important;
+}
+
+.mud-nav-link:hover, .mud-nav-link.active {
+    background-color: #2e2e2e !important;
+    color: #90CAF9 !important;
+}
+
+.mud-nav-link.active {
+    color: #42A5F5 !important;
+}
+
+/* Chart container */
+.mud-chart {
+    background: transparent !important;
+}
+
+/* DataGrid dark theme */
+.mud-table-container {
+    background: #242424 !important;
+}
+
+.mud-table-head .mud-table-row .mud-table-cell {
+    background: #1e1e1e !important;
+    color: #90A4AE !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mud-table-row:hover td {
+    background-color: #2a2a2a !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+::-webkit-scrollbar-thumb {
+    background: #383838;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+}
+
+/* Loading progress line color */
+.mud-progress-linear {
+    height: 2px !important;
+}

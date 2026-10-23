@@ -1,0 +1,129 @@
+@page
+@model BudgetTracker.Pages.RegisterModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Registrieren – Budget Tracker";
+}
+<!DOCTYPE html>
+<html lang="de" class="bt-auth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/auth.css" />
+</head>
+<body>
+    <div class="bt-auth-card">
+        <div class="bt-auth-logo">BUDGET TRACKER</div>
+        <h1 class="bt-auth-title" style="font-size:1.8rem;">@(Model.IsFirstUser ? "Erstes Konto erstellen" : "Registrieren")</h1>
+        <p class="bt-auth-subtitle" style="margin-bottom:24px;">@(Model.IsFirstUser ? "Willkommen! Erstelle das erste Admin-Konto." : "Neues Konto anlegen.")</p>
+
+        @if (Model.IsFirstUser)
+        {
+            <div class="bt-auth-hint">Du bist die erste Person – dein Konto wird Administrator.</div>
+        }
+
+        <form method="post" id="regForm" class="bt-auth">
+            @Html.AntiForgeryToken()
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="bt-auth-error">@Model.ErrorMessage</div>
+            }
+
+            <div class="bt-auth-row">
+                <div>
+                    <label for="firstName">Vorname</label>
+                    <input id="firstName" name="firstName" type="text" autocomplete="given-name" autofocus
+                           value="@Model.FirstName" required />
+                </div>
+                <div>
+                    <label for="lastName">Nachname</label>
+                    <input id="lastName" name="lastName" type="text" autocomplete="family-name"
+                           value="@Model.LastName" required />
+                </div>
+            </div>
+
+            <label for="email">E-Mail-Adresse</label>
+            <input id="email" name="email" type="email" autocomplete="email"
+                   value="@Model.Email" required />
+
+            <label for="password">Passwort</label>
+            <input id="password" name="password" type="password" autocomplete="new-password"
+                   oninput="checkStrength(this.value)" required />
+            <div class="pw-strength">
+                <div class="pw-bar"><div class="pw-bar-fill" id="pwBar"></div></div>
+                <div class="pw-label" id="pwLabel"></div>
+                <div class="pw-rules">
+                    <span id="r-len" class="fail">✗ Mindestens 8 Zeichen</span>
+                    <span id="r-upper" class="fail">✗ Mindestens 1 Großbuchstabe</span>
+                    <span id="r-lower" class="fail">✗ Mindestens 1 Kleinbuchstabe</span>
+                    <span id="r-digit" class="fail">✗ Mindestens 1 Zahl</span>
+                </div>
+            </div>
+
+            <label for="password2">Passwort wiederholen</label>
+            <input id="password2" name="password2" type="password" autocomplete="new-password"
+                   oninput="checkMatch()" required />
+            <div class="match-hint" id="matchHint"></div>
+
+            <button type="submit" class="bt-auth-btn" id="submitBtn">Registrieren</button>
+        </form>
+
+        @if (!Model.IsFirstUser)
+        {
+            <p class="bt-auth-link">Bereits registriert? <a href="/login">Anmelden</a></p>
+        }
+    </div>
+
+    <script>
+        var pwOk = false;
+
+        function checkStrength(pw) {
+            var rules = [
+                { id: 'r-len',   ok: pw.length >= 8 },
+                { id: 'r-upper', ok: /[A-Z]/.test(pw) },
+                { id: 'r-lower', ok: /[a-z]/.test(pw) },
+                { id: 'r-digit', ok: /[0-9]/.test(pw) },
+            ];
+            var score = rules.filter(function(r) { return r.ok; }).length;
+            rules.forEach(function(r) {
+                var el = document.getElementById(r.id);
+                el.className = r.ok ? 'ok' : 'fail';
+                el.textContent = (r.ok ? '✓ ' : '✗ ') + el.textContent.slice(2);
+            });
+            var bar = document.getElementById('pwBar');
+            var label = document.getElementById('pwLabel');
+            var colors = ['#EF5350','#FF7043','#FFCA28','#66BB6A'];
+            var labels = ['Sehr schwach','Schwach','Mittel','Stark'];
+            if (pw.length === 0) { bar.style.width = '0'; label.textContent = ''; pwOk = false; }
+            else {
+                bar.style.width = (score * 25) + '%';
+                bar.style.background = colors[score - 1] || colors[0];
+                label.textContent = labels[score - 1] || labels[0];
+                pwOk = score === 4;
+            }
+            checkMatch();
+            updateSubmit();
+        }
+
+        function checkMatch() {
+            var p1 = document.getElementById('password').value;
+            var p2 = document.getElementById('password2').value;
+            var hint = document.getElementById('matchHint');
+            if (p2.length === 0) { hint.textContent = ''; return; }
+            if (p1 === p2) { hint.className = 'match-hint match-ok'; hint.textContent = '✓ Passwörter stimmen überein'; }
+            else           { hint.className = 'match-hint match-fail'; hint.textContent = '✗ Passwörter stimmen nicht überein'; }
+            updateSubmit();
+        }
+
+        function updateSubmit() {
+            var p2 = document.getElementById('password2').value;
+            var p1 = document.getElementById('password').value;
+            document.getElementById('submitBtn').disabled = !(pwOk && p1 === p2 && p2.length > 0);
+        }
+    </script>
+</body>
+</html>
