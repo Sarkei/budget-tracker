@@ -50,20 +50,17 @@ msbuild.wrn
 
 # Add below lines to exclude OS settings and caches
 .trash/
-.DS_Store
 # OneDrive sync conflict files
 *(# Edit conflict*
 *(# Conflict*
 
 # System
-.DS_Store
 Thumbs.db
 desktop.ini
 
 # Editor / IDE
 .vscode/
 .idea/
-*.swp
 *.swo
 
 # Logs und Temp
@@ -73,9 +70,6 @@ desktop.ini
 # .NET
 bin/
 obj/
-*.user
-*.suo
-.vs/
 TestResults/
 
 # Docker / lokal
