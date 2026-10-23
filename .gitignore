@@ -83,3 +83,6 @@ docker-compose.override.yml
 *.sqlite3
 *.db
 dumps/
+
+# Build-Ausgabe (nicht ins Repo)
+out_linux/
