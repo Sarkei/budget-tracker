@@ -59,6 +59,15 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddSingleton<GroupNotificationService>();
 
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(o =>
+{
+    // Hinter Cloudflare kommt HTTPS als X-Forwarded-Proto an - ohne das baut die App http-Links.
+    o.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+        | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // Initialize / seed database at startup
@@ -88,6 +97,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+app.UseForwardedHeaders();
 app.UseAuthentication();
 
 // Finanzdaten sieht ausschliesslich der Besitzer (OWNER_EMAIL, automatisch Admin).
