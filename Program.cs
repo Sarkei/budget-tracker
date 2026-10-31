@@ -53,6 +53,7 @@ builder.Services.AddScoped<CurrencyService>();
 builder.Services.AddScoped<AppStateService>();
 builder.Services.AddScoped<CamtCsvImportService>();
 builder.Services.AddScoped<BankImportService>();
+builder.Services.AddHostedService<BankSyncWorker>();
 builder.Services.AddScoped<GroupCsvImportService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserPreferencesService>();
@@ -88,6 +89,37 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseAuthentication();
+
+// Finanzdaten sieht ausschliesslich der Besitzer (OWNER_EMAIL, automatisch Admin).
+// Alle anderen Konten koennen sich anmelden, bekommen aber keine Zahlen zu sehen.
+app.Use(async (ctx, next) =>
+{
+    var pfad = ctx.Request.Path.Value ?? "/";
+    var oeffentlich = pfad.StartsWith("/login", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/register", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/logout", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/_", StringComparison.Ordinal)
+        || pfad.StartsWith("/css", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/js", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/lib", StringComparison.OrdinalIgnoreCase)
+        || pfad.StartsWith("/favicon", StringComparison.OrdinalIgnoreCase);
+
+    if (!oeffentlich && ctx.User.Identity?.IsAuthenticated == true && !ctx.User.IsInRole("Admin"))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+        ctx.Response.ContentType = "text/html; charset=utf-8";
+        await ctx.Response.WriteAsync(
+            "<!doctype html><meta charset=\"utf-8\"><title>Kein Zugriff</title>" +
+            "<body style=\"font-family:system-ui;max-width:38rem;margin:4rem auto;padding:0 1rem\">" +
+            "<h1>Kein Zugriff</h1><p>Dieses Konto hat keine Freigabe fuer die Finanzdaten. " +
+            "Die Daten gehoeren ausschliesslich dem Besitzer der Installation.</p>" +
+            "<p><a href=\"/logout\">Abmelden</a></p></body>");
+        return;
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 app.UseAntiforgery();
 

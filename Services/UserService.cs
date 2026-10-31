@@ -16,6 +16,17 @@ public class UserService
         _dbFactory = dbFactory;
     }
 
+    /// <summary>
+    /// Die Adresse aus OWNER_EMAIL ist der Besitzer der Installation: immer Admin und
+    /// die einzige Person, die die Finanzdaten sehen darf.
+    /// </summary>
+    public static string BesitzerEmail =>
+        (Environment.GetEnvironmentVariable("OWNER_EMAIL") ?? "nagraszust@gmail.com").Trim().ToLowerInvariant();
+
+    public static bool IstBesitzer(string? email) =>
+        !string.IsNullOrWhiteSpace(email) &&
+        string.Equals(email.Trim().ToLowerInvariant(), BesitzerEmail, StringComparison.Ordinal);
+
     public async Task<bool> IsFirstRunAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -42,7 +53,7 @@ public class UserService
             LastName = lastName.Trim(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             DisplayName = $"{firstName.Trim()} {lastName.Trim()}",
-            Role = isFirst ? UserRole.Admin : UserRole.Member,
+            Role = (isFirst || IstBesitzer(email)) ? UserRole.Admin : UserRole.Member,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
