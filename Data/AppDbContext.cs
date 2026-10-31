@@ -86,6 +86,11 @@ public class AppDbContext : DbContext
             .HasForeignKey(t => t.ScheduledPaymentId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // Bankimport: eine Bank-Referenz existiert je Konto nur einmal
+        modelBuilder.Entity<Transaction>()
+            .HasIndex(t => new { t.AccountId, t.ExternalId })
+            .IsUnique();
+
         // User unique username
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)

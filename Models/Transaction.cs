@@ -51,6 +51,27 @@ public class Transaction
     // Link to recurring item if this was auto-generated from one
     public int? RecurringItemId { get; set; }
 
+    // --- Bankimport ---
+
+    /// <summary>Stabile ID der Bank (EnableBanking: entry_reference). Verhindert Dubletten beim Sync.</summary>
+    [MaxLength(120)]
+    public string? ExternalId { get; set; }
+
+    /// <summary>Aufgeraeumter Empfaenger/Auftraggeber fuer Anzeige und Regeln.</summary>
+    [MaxLength(200)]
+    public string? Merchant { get; set; }
+
+    /// <summary>Umbuchung zwischen eigenen Konten (PayPal-Aufladung, Uebertrag) - zaehlt nicht in die Bilanz.</summary>
+    public bool IsTransfer { get; set; }
+
+    /// <summary>BOOK = gebucht, PDNG = vorgemerkt.</summary>
+    [MaxLength(10)]
+    public string? Status { get; set; }
+
+    /// <summary>Herkunft des Datensatzes: enablebanking, camt, manuell.</summary>
+    [MaxLength(30)]
+    public string? Source { get; set; }
+
     // Navigation
     public Account Account { get; set; } = null!;
     public Category? Category { get; set; }

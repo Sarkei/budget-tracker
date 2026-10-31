@@ -34,6 +34,10 @@ public class Account
     [MaxLength(50)]
     public string AccountType { get; set; } = "Girokonto";
 
+    /// <summary>IBAN fuer die Zuordnung beim Bankabgleich.</summary>
+    [MaxLength(34)]
+    public string? Iban { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public bool IsActive { get; set; } = true;

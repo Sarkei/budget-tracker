@@ -17,6 +17,7 @@ public static class DatabaseInitializer
 
         // Create any new tables that may not exist in an older database
         EnsureNewTablesExist(context);
+        EnsureBankImportColumns(context);
 
         SeedCategories(context);
         SeedDefaultAccount(context);
@@ -27,6 +28,25 @@ public static class DatabaseInitializer
     /// EnsureCreated() skips schema updates on existing databases, so we handle
     /// new tables explicitly here.
     /// </summary>
+    /// <summary>
+    /// Spalten fuer den Bankimport nachziehen - EnsureCreated aendert bestehende Tabellen nicht.
+    /// </summary>
+    private static void EnsureBankImportColumns(AppDbContext context)
+    {
+        void Spalte(string sql)
+        {
+            try { context.Database.ExecuteSqlRaw(sql); } catch { /* Spalte existiert bereits */ }
+        }
+
+        Spalte("ALTER TABLE \"Accounts\" ADD COLUMN \"Iban\" TEXT NULL");
+        Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"ExternalId\" TEXT NULL");
+        Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"Merchant\" TEXT NULL");
+        Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"IsTransfer\" INTEGER NOT NULL DEFAULT 0");
+        Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"Status\" TEXT NULL");
+        Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"Source\" TEXT NULL");
+        Spalte("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_Transactions_AccountId_ExternalId\" ON \"Transactions\" (\"AccountId\", \"ExternalId\")");
+    }
+
     private static void EnsureNewTablesExist(AppDbContext context)
     {
         context.Database.ExecuteSqlRaw(@"

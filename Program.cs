@@ -52,6 +52,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<CurrencyService>();
 builder.Services.AddScoped<AppStateService>();
 builder.Services.AddScoped<CamtCsvImportService>();
+builder.Services.AddScoped<BankImportService>();
 builder.Services.AddScoped<GroupCsvImportService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserPreferencesService>();
@@ -66,6 +67,17 @@ await using (var scope = app.Services.CreateAsyncScope())
     await using var db = await factory.CreateDbContextAsync();
     db.Database.EnsureCreated();
     DatabaseInitializer.Initialize(db);
+}
+
+// Bankumsaetze einlesen, sobald ein Datenordner eingehaengt ist (idempotent).
+var bankPath = Environment.GetEnvironmentVariable("BANK_DATA_PATH");
+if (!string.IsNullOrWhiteSpace(bankPath) && Directory.Exists(bankPath))
+{
+    await using var bankScope = app.Services.CreateAsyncScope();
+    var importer = bankScope.ServiceProvider.GetRequiredService<BankImportService>();
+    var ergebnis = await importer.ImportAsync();
+    Console.WriteLine($"[Bankimport] {ergebnis.Summary}");
+    foreach (var m in ergebnis.Messages) Console.WriteLine($"[Bankimport] {m}");
 }
 
 if (!app.Environment.IsDevelopment())

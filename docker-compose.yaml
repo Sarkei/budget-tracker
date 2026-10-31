@@ -10,8 +10,11 @@ services:
     volumes:
       # SQLite database persisted on host — change ./data to any path on your NAS
       - ./data:/app/data
+      # Bankumsätze aus dem EnableBanking-Abruf (nur lesend, wird beim Start importiert)
+      - /home/hermes-agent/hermes-data/finance/transaktionen:/data/bank:ro
     environment:
       - DATA_PATH=/app/data
+      - BANK_DATA_PATH=/data/bank
       - ASPNETCORE_ENVIRONMENT=Production
     networks:
       - default
