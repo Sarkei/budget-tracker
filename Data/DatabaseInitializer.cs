@@ -45,6 +45,10 @@ public static class DatabaseInitializer
         Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"Status\" TEXT NULL");
         Spalte("ALTER TABLE \"Transactions\" ADD COLUMN \"Source\" TEXT NULL");
         Spalte("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_Transactions_AccountId_ExternalId\" ON \"Transactions\" (\"AccountId\", \"ExternalId\")");
+
+        // Einmal-Token für den Passwort-Reset
+        Spalte("CREATE TABLE IF NOT EXISTS \"PasswordResets\" (\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_PasswordResets\" PRIMARY KEY AUTOINCREMENT, \"UserId\" INTEGER NOT NULL, \"TokenHash\" TEXT NOT NULL, \"ExpiresAt\" TEXT NOT NULL, \"UsedAt\" TEXT NULL)");
+        Spalte("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_PasswordResets_TokenHash\" ON \"PasswordResets\" (\"TokenHash\")");
     }
 
     private static void EnsureNewTablesExist(AppDbContext context)

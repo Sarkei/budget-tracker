@@ -1,0 +1,51 @@
+@page
+@model BudgetTracker.Pages.ResetModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Neues Passwort – Budget Tracker";
+}
+<!DOCTYPE html>
+<html lang="de" class="bt-auth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/auth.css" />
+</head>
+<body>
+    <div class="bt-auth-card bt-auth-card--narrow">
+        <div class="bt-auth-logo">BUDGET TRACKER</div>
+        <h1 class="bt-auth-title">@(Model.Done ? "Passwort geändert" : "Neues Passwort")</h1>
+
+        @if (Model.Done)
+        {
+            <p class="bt-auth-subtitle">Dein Passwort wurde gespeichert. Du kannst dich jetzt anmelden.</p>
+            <p class="bt-auth-link"><a href="/login">Zur Anmeldung</a></p>
+        }
+        else if (Model.TokenInvalid)
+        {
+            <p class="bt-auth-subtitle">Der Link ist ungültig oder abgelaufen. Fordere bitte einen neuen an.</p>
+            <p class="bt-auth-link"><a href="/forgot">Neuen Link anfordern</a></p>
+        }
+        else
+        {
+            <p class="bt-auth-subtitle">Mindestens 8 Zeichen, Groß- und Kleinbuchstabe, Zahl und Sonderzeichen.</p>
+            <form method="post" class="bt-auth">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="token" value="@Model.Token" />
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="bt-auth-error">@Model.ErrorMessage</div>
+                }
+                <label for="password">Neues Passwort</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" autofocus required />
+                <label for="password2">Passwort wiederholen</label>
+                <input id="password2" name="password2" type="password" autocomplete="new-password" required />
+                <button type="submit" class="bt-auth-btn">Passwort speichern</button>
+            </form>
+        }
+    </div>
+</body>
+</html>

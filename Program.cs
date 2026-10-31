@@ -56,6 +56,7 @@ builder.Services.AddScoped<BankImportService>();
 builder.Services.AddHostedService<BankSyncWorker>();
 builder.Services.AddScoped<GroupCsvImportService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PasswordResetService>();
 builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddSingleton<GroupNotificationService>();
 
