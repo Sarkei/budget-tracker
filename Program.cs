@@ -1,6 +1,7 @@
 using ApexCharts;
 using BudgetTracker.Data;
 using BudgetTracker.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -100,6 +101,47 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseForwardedHeaders();
 app.UseAuthentication();
+
+// Demo-Betrieb (DEMO_MODE=1): Die oeffentliche Demo meldet sich selbst mit dem
+// Beispielkonto an, damit Besucher ohne Registrierung hineinsehen koennen.
+if (Environment.GetEnvironmentVariable("DEMO_MODE") == "1")
+{
+    app.Use(async (ctx, next) =>
+    {
+        var pfad = ctx.Request.Path.Value ?? "/";
+        var statisch = pfad.StartsWith("/_", StringComparison.Ordinal)
+            || pfad.StartsWith("/css", StringComparison.OrdinalIgnoreCase)
+            || pfad.StartsWith("/js", StringComparison.OrdinalIgnoreCase)
+            || pfad.StartsWith("/lib", StringComparison.OrdinalIgnoreCase)
+            || pfad.StartsWith("/favicon", StringComparison.OrdinalIgnoreCase);
+
+        if (!statisch && ctx.User.Identity?.IsAuthenticated != true)
+        {
+            var users = ctx.RequestServices.GetRequiredService<UserService>();
+            var demo = (await users.GetAllAsync()).FirstOrDefault(u => u.Username == "demo@example.com");
+            if (demo is not null)
+            {
+                var claims = new List<System.Security.Claims.Claim>
+                {
+                    new(System.Security.Claims.ClaimTypes.NameIdentifier, demo.Id.ToString()),
+                    new(System.Security.Claims.ClaimTypes.Name, demo.Username),
+                    new("DisplayName", demo.DisplayName ?? demo.Username),
+                    new(System.Security.Claims.ClaimTypes.Role, demo.Role.ToString())
+                };
+                var identity = new System.Security.Claims.ClaimsIdentity(
+                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await ctx.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new System.Security.Claims.ClaimsPrincipal(identity),
+                    new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30) });
+                ctx.Response.Redirect(ctx.Request.Path + ctx.Request.QueryString);
+                return;
+            }
+        }
+
+        await next();
+    });
+}
 
 // Finanzdaten sieht ausschliesslich der Besitzer (OWNER_EMAIL, automatisch Admin).
 // Alle anderen Konten koennen sich anmelden, bekommen aber keine Zahlen zu sehen.
