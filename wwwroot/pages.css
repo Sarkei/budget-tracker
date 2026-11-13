@@ -83,7 +83,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-account-item.bt-account-default {
-    border-left: 3px solid rgba(255, 179, 0, 0.5);
+    border-left: 3px solid var(--warn);
 }
 
 .bottom-nav {
@@ -206,7 +206,7 @@ html, body, #app, .mud-layout {
 }
 
 .mobile-acc-btn.is-default {
-    border-color: rgba(255, 179, 0, 0.45);
+    border-color: var(--warn);
 }
 
 .bt-notif-panel {
@@ -219,7 +219,7 @@ html, body, #app, .mud-layout {
     background: var(--card-bg);
     border: 1px solid var(--border-muted);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-panel);
 }
 
 .bottom-fab-center {
@@ -242,7 +242,7 @@ html, body, #app, .mud-layout {
     position: relative;
     bottom: 14px;
     background: var(--brand);
-    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.45);
+    box-shadow: var(--shadow);
     transition: background 0.15s, transform 0.15s;
 }
 
@@ -258,7 +258,7 @@ html, body, #app, .mud-layout {
     position: fixed;
     inset: 0;
     z-index: 1295;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--scrim);
     backdrop-filter: blur(2px);
 }
 
@@ -278,7 +278,7 @@ html, body, #app, .mud-layout {
     border: 1px solid var(--border-muted);
     border-radius: 14px;
     padding: 6px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--shadow-panel);
 }
 
 .bottom-fab-menu-item {
@@ -350,8 +350,8 @@ html, body, #app, .mud-layout {
 .report-mode-toggle,
 .grp-report-mode-toggle {
     display: inline-flex;
-    background: #1f1f1f;
-    border: 1px solid #303030;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 3px;
     gap: 2px;
@@ -375,9 +375,9 @@ html, body, #app, .mud-layout {
 .bt-pill.active,
 .report-mode-btn.active,
 .grp-report-mode-btn.active {
-    background: #303030;
+    background: var(--surface-2);
     color: var(--brand);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-sm);
 }
 
 .bt-pill:hover:not(.active),
@@ -389,12 +389,12 @@ html, body, #app, .mud-layout {
 .date-preset-btn,
 .grp-date-preset {
     padding: 4px 12px;
-    border: 1px solid #303030;
+    border: 1px solid var(--line);
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    background: #1f1f1f;
+    background: var(--surface);
     color: var(--text-muted);
     transition: all 0.12s;
     white-space: nowrap;
@@ -459,7 +459,7 @@ html, body, #app, .mud-layout {
     align-items: center;
     gap: 10px;
     padding: 8px 0;
-    border-bottom: 1px solid #1e1e1e;
+    border-bottom: 1px solid var(--line);
 }
 
 .fo-row:last-child,
@@ -510,7 +510,7 @@ html, body, #app, .mud-layout {
 .stat-bar-track {
     height: 7px;
     border-radius: 4px;
-    background: #1f1f1f;
+    background: var(--surface);
     overflow: hidden;
     margin-top: 4px;
 }
@@ -537,13 +537,13 @@ html, body, #app, .mud-layout {
 }
 
 .ba-recurring-chip {
-    background: #29b6f622;
-    color: #29b6f6;
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 .ba-onetime-chip {
-    background: #ffa72622;
-    color: #ffa726;
+    background: var(--warn-soft);
+    color: var(--warn);
 }
 
 @media (max-width: 600px) {
@@ -594,7 +594,7 @@ html, body, #app, .mud-layout {
 }
 
 .tx-card:active {
-    background: #303030;
+    background: var(--surface-2);
 }
 
 .tx-card-bar {
@@ -758,7 +758,7 @@ html, body, #app, .mud-layout {
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    border-bottom: 1px solid #303030;
+    border-bottom: 1px solid var(--line);
 }
 
 .gd-debt-name {
@@ -811,8 +811,8 @@ html, body, #app, .mud-layout {
     }
 
     body {
-        background: #fff !important;
-        color: #000 !important;
+        background: var(--surface) !important;
+        color: var(--ink) !important;
     }
 
     .print-header,
@@ -821,19 +821,19 @@ html, body, #app, .mud-layout {
     }
 
     .mud-paper {
-        border: 1px solid #ccc !important;
-        background: #fff !important;
+        border: 1px solid var(--line) !important;
+        background: var(--surface) !important;
         break-inside: avoid;
     }
 
     .mud-text {
-        color: #000 !important;
+        color: var(--ink) !important;
     }
 
     .mud-main-content * {
-        color: #000 !important;
+        color: var(--ink) !important;
         background: transparent !important;
-        border-color: #ccc !important;
+        border-color: var(--line) !important;
     }
 
     .category-dot {
@@ -891,7 +891,7 @@ html, body, #app, .mud-layout {
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    border-bottom: 1px solid #303030;
+    border-bottom: 1px solid var(--line);
 }
 
 .mr-tx-card:last-child {
@@ -956,13 +956,13 @@ html, body, #app, .mud-layout {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    border-bottom: 1px solid #252525;
+    border-bottom: 1px solid var(--line);
 }
 
 .gr-stat-name {
     flex: 1;
     font-size: 0.88rem;
-    color: #b0bec5;
+    color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1128,7 +1128,7 @@ html, body, #app, .mud-layout {
     align-items: center;
     justify-content: space-between;
     padding: 13px 18px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--line);
     gap: 12px;
 }
 
@@ -1146,7 +1146,7 @@ html, body, #app, .mud-layout {
     align-items: center;
     padding: 11px 18px;
     gap: 14px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--line);
     transition: background 0.1s;
 }
 
@@ -1155,7 +1155,7 @@ html, body, #app, .mud-layout {
 }
 
 .st-list-row:hover {
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--surface-2);
 }
 
 .st-dot {
@@ -1284,7 +1284,7 @@ html, body, #app, .mud-layout {
 .gi-preview-table thead {
     position: sticky;
     top: 0;
-    background: #1f1f1f;
+    background: var(--surface);
     z-index: 1;
 }
 
@@ -1303,7 +1303,7 @@ html, body, #app, .mud-layout {
 .camt-preview-table td,
 .gi-preview-table td {
     padding: 6px 10px;
-    border-bottom: 1px solid #303030;
+    border-bottom: 1px solid var(--line);
     vertical-align: middle;
 }
 
@@ -1404,7 +1404,7 @@ html, body, #app, .mud-layout {
 
 .bt-notif-head {
     padding: 12px 16px;
-    border-bottom: 1px solid #252525;
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1412,7 +1412,7 @@ html, body, #app, .mud-layout {
 
 .bt-notif-item {
     padding: 12px 16px;
-    border-bottom: 1px solid #1f1f1f;
+    border-bottom: 1px solid var(--line);
 }
 
 .bt-appbar-brand {
@@ -1440,7 +1440,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-drawer-divider {
-    border-top: 1px solid #1f1f1f;
+    border-top: 1px solid var(--line);
     flex-shrink: 0;
 }
 
@@ -1504,7 +1504,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-kpi-mini--warning {
-    border-left: 4px solid #ffa726;
+    border-left: 4px solid var(--warn);
 }
 
 /* ── Panels, lists, empty states ───────────────────────── */
@@ -1586,7 +1586,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-text-warning {
-    color: #ffa726 !important;
+    color: var(--warn) !important;
 }
 
 .bt-truncate {
@@ -1674,7 +1674,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-group-inner {
-    background: #1f1f1f;
+    background: var(--surface);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -1686,7 +1686,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-table-compact thead tr {
-    border-bottom: 1px solid #303030;
+    border-bottom: 1px solid var(--line);
 }
 
 .bt-table-compact th {
@@ -1704,7 +1704,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-table-compact tbody tr {
-    border-bottom: 1px solid #252525;
+    border-bottom: 1px solid var(--line);
 }
 
 .bt-table-compact td {
@@ -1722,7 +1722,7 @@ html, body, #app, .mud-layout {
 }
 
 .bt-member-name {
-    color: #b0bec5;
+    color: var(--muted);
     max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1773,15 +1773,15 @@ html, body, #app, .mud-layout {
 }
 
 .bt-field-value {
-    color: #cfd8dc !important;
+    color: var(--ink) !important;
 }
 
 .bt-text-soft {
-    color: #cfd8dc !important;
+    color: var(--ink) !important;
 }
 
 .bt-text-dim {
-    color: #78909c !important;
+    color: var(--muted) !important;
 }
 
 .bt-icon-section {
@@ -1806,20 +1806,20 @@ html, body, #app, .mud-layout {
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--text-placeholder);
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--line);
 }
 
 .st-list-name {
     font-size: 14px;
     font-weight: 500;
-    color: #cfd8dc;
+    color: var(--ink);
 }
 
 .st-badge-default {
     font-size: 10px;
     font-weight: 600;
-    background: rgba(255, 179, 0, 0.15);
-    color: #ffb300;
+    background: var(--warn-soft);
+    color: var(--warn);
     padding: 2px 8px;
     border-radius: 10px;
 }
