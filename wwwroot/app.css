@@ -50,6 +50,7 @@
     color-scheme: light;
 
     /* ── Alt-Namen der App auf die Tokens gemappt ── */
+    --on-accent-soft: var(--accent-ink);
     --brand: var(--accent);
     --brand-muted: var(--accent-ink);
     --background: var(--bg);
@@ -64,8 +65,7 @@
 
 [data-theme='dark'],
 .dark,
-html.bt-dark,
-html.bt-auth {
+html.bt-dark {
     --bg: #0e1512;
     --surface: #16211c;
     --surface-2: #1b2822;
@@ -98,6 +98,8 @@ html.bt-auth {
 
     color-scheme: dark;
 
+    --on-accent-soft: var(--accent-ink);
+
     --brand: var(--accent);
     --brand-muted: var(--accent-ink);
     --background: var(--bg);
@@ -110,8 +112,8 @@ html.bt-auth {
     --error: var(--danger);
 }
 
-html.bt-dark,
-html.bt-dark body {
+html,
+body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -877,5 +879,362 @@ button,
         --line: #cccccc;
         --line-strong: #999999;
         color-scheme: light;
+    }
+}
+
+/* ── App-Shell: Ergänzungen zur Portfolio-Vorlage ─────────────────
+   shell.css liefert Kopfzeile, Hero, Kennzahlen, Karten und Bänder.
+   Hier steht nur, was die App zusätzlich braucht: Konto-Umschalter,
+   „Mehr“-Menü, Mobilzeile, Listen und Zustände. Nur var(--…). */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.app-header .app-container {
+    padding-inline: 20px;
+}
+
+.app-header__inner {
+    flex-wrap: nowrap;
+    gap: 20px;
+}
+
+.app-brand {
+    text-decoration: none;
+    flex: none;
+}
+
+.app-brand__mark {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    line-height: 1;
+}
+
+.app-brand__text {
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.app-nav {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+}
+
+.app-nav-item:focus-visible,
+.app-iconbtn:focus-visible,
+.app-select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.app-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+/* Konto-Umschalter in der Kopfzeile */
+.app-account {
+    display: flex;
+    align-items: center;
+    flex: none;
+}
+
+.app-select {
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 180px;
+    height: 36px;
+    padding: 0 30px 0 14px;
+    background-color: var(--surface);
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 15px) 15px, calc(100% - 10px) 15px;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.app-select:hover {
+    border-color: var(--line-strong);
+}
+
+.app-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* „Mehr“-Menü */
+.app-more {
+    position: relative;
+}
+
+.app-more > summary {
+    list-style: none;
+}
+
+.app-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.app-more__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    min-width: 220px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
+}
+
+.app-more__item {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.app-more__item:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.app-more__item.is-active {
+    background: var(--accent-soft);
+    color: var(--on-accent-soft);
+}
+
+/* Mobilmenü */
+.app-mobile-nav a.is-active {
+    background: var(--accent-soft);
+    color: var(--on-accent-soft);
+}
+
+.app-mobile-nav__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+/* Karten mit Symbol und Pfeil */
+.app-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.app-card__icon {
+    color: var(--accent);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.app-card__arrow {
+    color: var(--muted);
+    font-size: 16px;
+    transition: transform 140ms ease, color 140ms ease;
+}
+
+.app-card--link:hover .app-card__arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+}
+
+.app-card--link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Fußzeile */
+.app-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Listen: letzte Buchungen, nächste Zahlungen */
+.app-list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+}
+
+.app-row:first-child {
+    border-top: 0;
+}
+
+.app-row__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    flex: none;
+}
+
+.app-row__dot--out {
+    background: var(--muted);
+}
+
+.app-row__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.app-row__title {
+    color: var(--ink);
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-row__meta {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.app-row__amount {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.app-row__amount--in {
+    color: var(--success);
+}
+
+.app-row__amount--out {
+    color: var(--ink);
+}
+
+.app-empty {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+.stat__value--negative {
+    color: var(--danger);
+}
+
+/* Zähler am Glocken-Knopf */
+.app-actions .app-iconbtn {
+    position: relative;
+}
+
+.app-count {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+    color: var(--on-accent);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Kopfzeile: ab 960 px Pillen, darunter Mobilmenü */
+@media (max-width: 959px) {
+    .app-header .app-nav {
+        display: none;
+    }
+
+    .app-header .app-mobile-toggle {
+        display: grid;
+    }
+
+    .app-account,
+    .app-actions .app-iconbtn--logout {
+        display: none;
+    }
+
+    .app-mobile-nav .app-account {
+        display: flex;
+    }
+
+    .app-hero {
+        padding-top: 32px;
+    }
+}
+
+@media (min-width: 960px) {
+    .app-header .app-nav {
+        display: flex;
+    }
+
+    .app-header .app-mobile-toggle {
+        display: none;
+    }
+}
+
+@media (max-width: 639px) {
+    .app-hero {
+        padding-top: 28px;
+    }
+
+    .app-section {
+        padding-block: 40px;
+    }
+
+    .stat__value {
+        font-size: 24px;
+    }
+
+    .app-card__top .app-nav-item {
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-card__arrow,
+    .app-nav-item,
+    .app-iconbtn {
+        transition: none;
     }
 }

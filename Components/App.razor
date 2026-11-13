@@ -13,12 +13,26 @@
     <link href="_content/Blazor-ApexCharts/css/apexcharts.css" rel="stylesheet" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="pages.css" />
+    <link rel="stylesheet" href="shell.css" />
+    <script>
+        (function () {
+            var theme = 'light';
+            try { theme = localStorage.getItem('bt-theme') || 'light'; } catch (e) { }
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <HeadOutlet />
 </head>
-<body class="bt-dark">
+<body>
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.server.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="theme.js"></script>
     <script>
         document.addEventListener('focusin', function (e) {
             var im = e.target.getAttribute && e.target.getAttribute('inputmode');

@@ -13,6 +13,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/app.css" />
     <link rel="stylesheet" href="/auth.css" />
+    <script>
+        (function () {
+            var theme = 'light';
+            try { theme = localStorage.getItem('bt-theme') || 'light'; } catch (e) { }
+            if (theme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.classList.add('dark'); }
+            else { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
 </head>
 <body>
     <div class="bt-auth-card bt-auth-card--narrow">
@@ -22,7 +30,7 @@
 
         @if (Model.Sent)
         {
-            <div class="bt-auth-error" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20">
+            <div class="bt-auth-hint">
                 Wenn zu dieser Adresse ein Konto existiert, ist die Mail unterwegs. Der Link gilt eine Stunde.
             </div>
             <p class="bt-auth-link" style="margin-top:1.5rem"><a href="/login">Zurück zur Anmeldung</a></p>

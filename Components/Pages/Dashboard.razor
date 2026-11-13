@@ -1,11 +1,11 @@
 @page "/"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
-@using ApexCharts
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AppStateService AppState
 @inject IDialogService DialogService
-<PageTitle>Dashboard – Budget Tracker</PageTitle>
+@inject UserPreferencesService PrefsService
+<PageTitle>Übersicht – Budget Tracker</PageTitle>
 
 <AuthorizeView>
     <Authorized>
@@ -15,254 +15,251 @@
                 ?? "du";
             var firstName = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? displayName;
         }
-        <header class="bt-hero">
-            <div>
-                <h1 class="bt-hero-title">Willkommen zurück, <span class="bt-hero-accent">@firstName</span>!</h1>
-                <span class="bt-hero-date">@DateTime.Today.ToString("dddd, dd. MMMM yyyy", _de)</span>
+
+        <section class="app-hero">
+            <div class="app-container">
+                <span class="app-badge">Übersicht · @DateTime.Today.ToString("MMMM yyyy", _de)</span>
+                <h1 class="app-title">Guten Tag, @firstName.</h1>
+                <p class="app-lede">
+                    Saldo, Buchungen und die nächsten Zahlungen auf einen Blick – alles, was dein
+                    Budget gerade bewegt.
+                </p>
+                <div class="app-hero__actions">
+                    <button type="button" class="ui-btn ui-btn-primary" style="border-radius:999px;" @onclick="AddIncomeAsync">
+                        Einnahme erfassen
+                    </button>
+                    <button type="button" class="ui-btn" style="border-radius:999px;" @onclick="AddExpenseAsync">
+                        Ausgabe erfassen
+                    </button>
+                    @if (_prefs.ShowScheduledPayments)
+                    {
+                        <button type="button" class="ui-btn" style="border-radius:999px;" @onclick="AddScheduledPaymentAsync">
+                            Zahlung planen
+                        </button>
+                    }
+                </div>
             </div>
-            <div class="bt-actions">
-                <button type="button" class="ui-btn-success" @onclick="AddIncomeAsync">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="MudBlazor.Size.Small" />
-                    Einnahme
-                </button>
-                <button type="button" class="ui-btn-danger" @onclick="AddExpenseAsync">
-                    <MudIcon Icon="@Icons.Material.Filled.Remove" Size="MudBlazor.Size.Small" />
-                    Ausgabe
-                </button>
-                <button type="button" class="ui-btn-muted" @onclick="AddScheduledPaymentAsync">
-                    <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="MudBlazor.Size.Small" />
-                    Geplant
-                </button>
-            </div>
-        </header>
+        </section>
+
+        <div class="app-container">
+            @if (_loading)
+            {
+                <div class="stat-row">
+                    <div class="stat"><div class="stat__value">–</div><div class="stat__label">wird geladen</div></div>
+                    <div class="stat"><div class="stat__value">–</div><div class="stat__label">wird geladen</div></div>
+                    <div class="stat"><div class="stat__value">–</div><div class="stat__label">wird geladen</div></div>
+                    <div class="stat"><div class="stat__value">–</div><div class="stat__label">wird geladen</div></div>
+                </div>
+            }
+            else
+            {
+                <dl class="stat-row">
+                    <div class="stat">
+                        <dt class="stat__value @(_currentBalance < 0 ? "stat__value--negative" : "")">
+                            @_currentBalance.ToString("C2", _de)
+                        </dt>
+                        <dd class="stat__label">Saldo</dd>
+                    </div>
+                    <div class="stat">
+                        <dt class="stat__value">@_transactionCount</dt>
+                        <dd class="stat__label">Buchungen</dd>
+                    </div>
+                    <div class="stat">
+                        <dt class="stat__value">@_accountCount</dt>
+                        <dd class="stat__label">Konten</dd>
+                    </div>
+                    <div class="stat">
+                        <dt class="stat__value">@_categoryCount</dt>
+                        <dd class="stat__label">Kategorien</dd>
+                    </div>
+                </dl>
+            }
+        </div>
     </Authorized>
     <NotAuthorized>
-        <header class="bt-page-header">
-            <h1 class="bt-page-title">Dashboard</h1>
-            <span class="bt-page-subtitle">@DateTime.Today.ToString("dddd, dd. MMMM yyyy", _de)</span>
-        </header>
+        <section class="app-hero">
+            <div class="app-container">
+                <span class="app-badge">Übersicht</span>
+                <h1 class="app-title">Budget Tracker</h1>
+                <p class="app-lede">Bitte melde dich an, um deine Finanzen zu sehen.</p>
+            </div>
+        </section>
     </NotAuthorized>
 </AuthorizeView>
 
-@if (_loading)
-{
-    <MudProgressLinear Color="MudBlazor.Color.Secondary" Indeterminate="true" Class="mb-4" />
-}
-
-<!-- Per-account overview row (visible only when all accounts selected) -->
-@if (AppState.ShowingAllAccounts && _accountBalances.Any())
-{
-    <div class="bt-account-chip-grid">
-        @foreach (var ab in _accountBalances)
-        {
-            var balSign = ab.Balance > 0 ? "+" : "";
-            <div class="bt-account-chip">
-                <div class="bt-account-row-label">
-                    <div class="bt-account-dot" style="@($"background:{ab.ColorHex};")"></div>
-                    <span class="bt-stat-label" style="margin:0;">@ab.AccountName</span>
-                </div>
-                <p class="bt-stat-value @UiClasses.BalanceText(ab.Balance)" style="font-size:1.25rem; margin-top:0.35rem;">
-                    @balSign@ab.Balance.ToString("C2", _de)
-                </p>
-            </div>
-        }
+<section class="app-section">
+    <div class="app-container">
+        <div class="app-section__head">
+            <h2 class="app-section__title">Bereiche</h2>
+            <span class="app-section__note">Alles, was du regelmäßig brauchst.</span>
+        </div>
+        <div class="app-grid app-grid--three">
+            @foreach (var area in Areas())
+            {
+                <a class="app-card app-card--link" href="@area.Href">
+                    <div class="app-card__top">
+                        <span class="app-card__icon material-icons" aria-hidden="true">@area.Icon</span>
+                        <span class="app-card__arrow" aria-hidden="true">→</span>
+                    </div>
+                    <h3 class="app-card__title">@area.Title</h3>
+                    <p class="app-card__text">@area.Text</p>
+                </a>
+            }
+        </div>
     </div>
-}
+</section>
 
-<div class="bt-stat-grid">
-    <DashboardStatCard Label="Aktueller Saldo"
-                       Value="@_currentBalance.ToString("C2", _de)"
-                       Icon="@Icons.Material.Filled.AccountBalanceWallet"
-                       IconClass="bt-stat-icon--brand"
-                       ValueClass="bt-stat-value--brand" />
-    <DashboardStatCard Label="Prognose (30 Tage)"
-                       Value="@_projectedBalance.ToString("C2", _de)"
-                       Hint="inkl. geplant & wiederkehrend"
-                       Icon="@Icons.Material.Filled.TrendingUp"
-                       IconClass="bt-stat-icon--brand"
-                       ValueClass="bt-stat-value--brand" />
-    <DashboardStatCard Label="Einnahmen (Monat)"
-                       Value="@_monthlyIncome.ToString("C2", _de)"
-                       Icon="@Icons.Material.Filled.ArrowUpward"
-                       IconClass="bt-stat-icon--success"
-                       ValueClass="bt-stat-value--success" />
-    <DashboardStatCard Label="Ausgaben (Monat)"
-                       Value="@_monthlyExpenses.ToString("C2", _de)"
-                       Icon="@Icons.Material.Filled.ArrowDownward"
-                       IconClass="bt-stat-icon--error"
-                       ValueClass="bt-stat-value--error" />
-</div>
-
-<!-- Charts row -->
-<MudGrid Spacing="3" Class="mb-4">
-    <MudItem xs="12" md="7">
-        <div class="bt-card bt-card-chart">
-            <div class="bt-section-title">Einnahmen vs. Ausgaben (6 Monate)</div>
-            @if (!_loading && _monthlyChartData.Any())
-            {
-                <ApexChart @key="@($"monthly-{_chartRenderKey}")" TItem="MonthlyData" Options="_monthlyChartOptions" Height="260">
-                    <ApexPointSeries TItem="MonthlyData" Items="_monthlyChartData" Name="Einnahmen"
-                                     SeriesType="@ApexCharts.SeriesType.Bar" XValue="e => e.Month" YValue="e => e.Income" Color="#66BB6A" />
-                    <ApexPointSeries TItem="MonthlyData" Items="_monthlyChartData" Name="Ausgaben"
-                                     SeriesType="@ApexCharts.SeriesType.Bar" XValue="e => e.Month" YValue="e => e.Expenses" Color="#EF5350" />
-                </ApexChart>
-            }
-        </div>
-    </MudItem>
-    <MudItem xs="12" md="5">
-        <div class="bt-card bt-card-chart">
-            <div class="bt-section-title">Ausgaben nach Kategorie</div>
-            @if (!_loading && _categoryChartData.Any())
-            {
-                <ApexChart @key="@($"category-{_chartRenderKey}")" TItem="CategoryData" Options="_categoryChartOptions" Height="260">
-                    <ApexPointSeries TItem="CategoryData" Items="_categoryChartData" Name="Betrag"
-                                     SeriesType="@ApexCharts.SeriesType.Donut" XValue="e => e.Name" YValue="e => e.Amount"
-                                     PointColor="e => e.Color" />
-                </ApexChart>
-            }
-            else if (!_loading)
-            {
-                <MudText Class="bt-text-muted bt-chart-empty">Keine Ausgaben diesen Monat</MudText>
-            }
-        </div>
-    </MudItem>
-</MudGrid>
-
-<div class="bt-card bt-card-chart mb-4">
-    <div class="bt-section-title">Kontostand (letzte 30 Tage)</div>
-    @if (!_loading && _balanceChartData.Any())
-    {
-        <ApexChart @key="@($"balance-{_chartRenderKey}")" TItem="BalanceData" Options="_balanceChartOptions" Height="160">
-            <ApexPointSeries TItem="BalanceData" Items="_balanceChartData" Name="Kontostand"
-                             SeriesType="@ApexCharts.SeriesType.Area" XValue="e => e.Date" YValue="e => e.Balance" Color="#14B8A6" />
-        </ApexChart>
-    }
-</div>
-
-<!-- Recent transactions + Upcoming payments -->
-<MudGrid Spacing="3">
-    <MudItem xs="12" md="6" Class="bt-flex-col">
-        <div class="bt-list-card">
-            <MudText Typo="Typo.subtitle1" Class="bt-list-card-header">Letzte Transaktionen</MudText>
-            <MudList T="Transaction" Dense="true" DisablePadding="true">
-                @foreach (var t in _recentTransactions)
+<section class="app-band app-section">
+    <div class="app-container">
+        <div class="app-section__head">
+            <h2 class="app-section__title">Zuletzt passiert</h2>
+            <span class="app-section__note">
+                @if (!_loading)
                 {
-                    <MudListItem T="Transaction">
-                        <div class="bt-list-row">
-                            <div class="bt-list-row-dot @(t.Type == TransactionType.Income ? "bt-list-row-dot--income" : "bt-list-row-dot--expense")"></div>
-                            <div class="bt-list-row-main">
-                                <MudText Typo="Typo.body2" Class="bt-truncate">@(t.Note ?? t.Category?.Name ?? "–")</MudText>
-                                <MudText Typo="Typo.caption" Class="bt-text-muted">
-                                    @t.Date.ToString("dd.MM.yyyy") · @(t.Account?.Name ?? "")
-                                </MudText>
+                    <text>@_monthName: @_monthlyIncome.ToString("C2", _de) ein · @_monthlyExpenses.ToString("C2", _de) aus</text>
+                }
+            </span>
+        </div>
+        <div class="app-grid">
+            <div class="app-card">
+                <div class="app-card__top">
+                    <span class="app-card__icon material-icons" aria-hidden="true">receipt_long</span>
+                    <a class="app-nav-item" href="/transactions">Alle ansehen →</a>
+                </div>
+                <h3 class="app-card__title">Letzte Buchungen</h3>
+                @if (_loading)
+                {
+                    <p class="app-empty">Buchungen werden geladen …</p>
+                }
+                else if (_recentTransactions.Count == 0)
+                {
+                    <p class="app-empty">Noch keine Buchungen erfasst.</p>
+                    <button type="button" class="ui-btn ui-btn-primary" style="border-radius:999px; margin-top:8px;"
+                            @onclick="AddExpenseAsync">Erste Ausgabe erfassen</button>
+                }
+                else
+                {
+                    <div class="app-list">
+                        @foreach (var t in _recentTransactions)
+                        {
+                            var isIncome = t.Type == TransactionType.Income;
+                            <div class="app-row">
+                                <span class="app-row__dot @(isIncome ? "" : "app-row__dot--out")"></span>
+                                <div class="app-row__main">
+                                    <div class="app-row__title">@(t.Note ?? t.Category?.Name ?? "Buchung")</div>
+                                    <div class="app-row__meta">
+                                        @t.Date.ToString("dd.MM.yyyy") · @(t.Account?.Name ?? "Konto")
+                                    </div>
+                                </div>
+                                <span class="app-row__amount @(isIncome ? "app-row__amount--in" : "app-row__amount--out")">
+                                    @(isIncome ? "+" : "−")@t.Amount.ToString("C2", _de)
+                                </span>
                             </div>
-                            <MudText Typo="Typo.body2" Class="@($"{UiClasses.TransactionAmount(t.Type)} bt-amount-end")">
-                                @(t.Type == TransactionType.Income ? "+" : "-")@t.Amount.ToString("C2", _de)
-                            </MudText>
-                        </div>
-                    </MudListItem>
+                        }
+                    </div>
                 }
-                @if (!_recentTransactions.Any())
+            </div>
+
+            <div class="app-card">
+                <div class="app-card__top">
+                    <span class="app-card__icon material-icons" aria-hidden="true">event</span>
+                    <a class="app-nav-item" href="/scheduled">Alle ansehen →</a>
+                </div>
+                <h3 class="app-card__title">Nächste Zahlungen</h3>
+                @if (_loading)
                 {
-                    <MudListItem T="Transaction">
-                        <MudText Class="bt-pad-muted-italic">Keine Transaktionen</MudText>
-                    </MudListItem>
+                    <p class="app-empty">Zahlungen werden geladen …</p>
                 }
-            </MudList>
-        </div>
-    </MudItem>
-    <MudItem xs="12" md="6" Class="bt-flex-col">
-        <div class="bt-list-card">
-            <MudText Typo="Typo.subtitle1" Class="bt-list-card-header">Fällige Zahlungen (30 Tage)</MudText>
-            <MudList T="ScheduledPayment" Dense="true" DisablePadding="true">
-                @foreach (var p in _upcomingPayments)
+                else if (_upcomingPayments.Count == 0)
                 {
-                    var daysLeft = (p.DueDate - DateTime.Today).Days;
-                    var urgentClass = UiClasses.UrgentText(daysLeft);
-                    <MudListItem T="ScheduledPayment">
-                        <div class="bt-list-row">
-                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="MudBlazor.Size.Small" Class="@($"bt-icon-urgent {urgentClass}")" />
-                            <div class="bt-list-row-main">
-                                <MudText Typo="Typo.body2" Class="bt-truncate">@p.Name</MudText>
-                                <MudText Typo="Typo.caption" Class="@urgentClass">
-                                    @p.DueDate.ToString("dd.MM.yyyy")
-                                    @UiClasses.DaysLeftSuffix(daysLeft)
-                                </MudText>
+                    <p class="app-empty">In den nächsten 30 Tagen ist nichts fällig.</p>
+                }
+                else
+                {
+                    <div class="app-list">
+                        @foreach (var p in _upcomingPayments)
+                        {
+                            var daysLeft = (p.DueDate - DateTime.Today).Days;
+                            <div class="app-row">
+                                <span class="app-row__dot"></span>
+                                <div class="app-row__main">
+                                    <div class="app-row__title">@p.Name</div>
+                                    <div class="app-row__meta">
+                                        @p.DueDate.ToString("dd.MM.yyyy") ·
+                                        @(daysLeft <= 0 ? "heute fällig" : daysLeft == 1 ? "morgen" : $"in {daysLeft} Tagen")
+                                    </div>
+                                </div>
+                                <span class="app-row__amount">@p.Amount.ToString("C2", _de)</span>
                             </div>
-                            <MudText Typo="Typo.body2" Class="bt-text-error bt-amount-end">@p.Amount.ToString("C2", _de)</MudText>
-                        </div>
-                    </MudListItem>
+                        }
+                    </div>
                 }
-                @if (!_upcomingPayments.Any())
-                {
-                    <MudListItem T="ScheduledPayment">
-                        <MudText Class="bt-pad-muted-italic">Keine fälligen Zahlungen</MudText>
-                    </MudListItem>
-                }
-            </MudList>
+            </div>
         </div>
-    </MudItem>
-</MudGrid>
+    </div>
+</section>
 
 @code {
     private static readonly System.Globalization.CultureInfo _de = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
 
     private bool _loading = true;
-    private int _chartRenderKey;
-    private decimal _currentBalance, _projectedBalance, _monthlyIncome, _monthlyExpenses;
+    private decimal _currentBalance;
+    private decimal _monthlyIncome;
+    private decimal _monthlyExpenses;
+    private int _transactionCount;
+    private int _accountCount;
+    private int _categoryCount;
+    private string _monthName = DateTime.Today.ToString("MMMM", _de);
     private List<Transaction> _recentTransactions = new();
     private List<ScheduledPayment> _upcomingPayments = new();
+    private UserPreferences _prefs = new();
 
-    private record AccountBalance(string AccountName, string ColorHex, decimal Balance);
-    private List<AccountBalance> _accountBalances = new();
+    private record AreaItem(string Title, string Href, string Icon, string Text);
 
-    // ApexCharts data
-    private List<MonthlyData> _monthlyChartData = new();
-    private List<CategoryData> _categoryChartData = new();
-    private List<BalanceData> _balanceChartData = new();
-
-    // Chart options
-    private ApexChartOptions<MonthlyData> _monthlyChartOptions = new()
+    private List<AreaItem> Areas()
     {
-        Chart = new Chart { Type = ApexCharts.ChartType.Bar, Background = "transparent", ForeColor = "#A3A3A3", Toolbar = new Toolbar { Show = false } },
-        Theme = new Theme { Mode = ApexCharts.Mode.Dark },
-        PlotOptions = new PlotOptions { Bar = new PlotOptionsBar { ColumnWidth = "60%", BorderRadius = 4 } },
-        Xaxis = new XAxis { Labels = new XAxisLabels { Style = new AxisLabelStyle { Colors = "#A3A3A3" } } },
-        Yaxis = new List<YAxis> { new YAxis { Labels = new YAxisLabels { Style = new AxisLabelStyle { Colors = "#A3A3A3" } } } },
-        Grid = new Grid { BorderColor = "#404040" },
-        Legend = new Legend { Position = LegendPosition.Bottom, Labels = new LegendLabels { Colors = "#A3A3A3" } }
-    };
-
-    private ApexChartOptions<CategoryData> _categoryChartOptions = new()
-    {
-        Chart = new Chart { Type = ApexCharts.ChartType.Donut, Background = "transparent", ForeColor = "#A3A3A3" },
-        Theme = new Theme { Mode = ApexCharts.Mode.Dark },
-        Colors = new List<string> { "#EF5350", "#FFA726", "#FFCA28", "#66BB6A", "#26C6DA", "#14B8A6", "#AB47BC", "#EC407A" },
-        Legend = new Legend { Position = LegendPosition.Bottom, Labels = new LegendLabels { Colors = "#A3A3A3" } },
-        PlotOptions = new PlotOptions { Pie = new PlotOptionsPie { Donut = new PlotOptionsDonut { Size = "65%" } } }
-    };
-
-    private ApexChartOptions<BalanceData> _balanceChartOptions = new()
-    {
-        Chart = new Chart { Type = ApexCharts.ChartType.Area, Background = "transparent", ForeColor = "#A3A3A3", Toolbar = new Toolbar { Show = false } },
-        Theme = new Theme { Mode = ApexCharts.Mode.Dark },
-        Stroke = new Stroke { Curve = Curve.Smooth, Width = 2 },
-        Fill = new Fill { Type = FillType.Gradient, Gradient = new FillGradient { ShadeIntensity = 0.6, OpacityFrom = 0.4, OpacityTo = 0.1 } },
-        Xaxis = new XAxis { Labels = new XAxisLabels { Style = new AxisLabelStyle { Colors = "#A3A3A3" } } },
-        Yaxis = new List<YAxis> { new YAxis { Labels = new YAxisLabels { Style = new AxisLabelStyle { Colors = "#A3A3A3" } } } },
-        Grid = new Grid { BorderColor = "#404040" },
-        Legend = new Legend { Show = false }
-    };
-
-    // Data classes
-    public class MonthlyData { public string Month { get; set; } = ""; public decimal Income { get; set; } public decimal Expenses { get; set; } }
-    public class CategoryData { public string Name { get; set; } = ""; public decimal Amount { get; set; } public string Color { get; set; } = "#9E9E9E"; }
-    public class BalanceData { public string Date { get; set; } = ""; public decimal Balance { get; set; } }
+        var items = new List<AreaItem>
+        {
+            new("Buchungen", "/transactions", "receipt_long",
+                "Einnahmen und Ausgaben erfassen, filtern und bearbeiten."),
+        };
+        if (_prefs.ShowRecurring)
+            items.Add(new("Wiederkehrend", "/recurring", "repeat",
+                "Feste Beträge, die Monat für Monat wiederkehren."));
+        if (_prefs.ShowScheduledPayments)
+            items.Add(new("Geplante Zahlungen", "/scheduled", "event",
+                "Was in den nächsten Wochen fällig wird."));
+        if (_prefs.ShowSavingsPots)
+            items.Add(new("Spartöpfe", "/savings", "savings",
+                "Ziele anlegen und den Fortschritt verfolgen."));
+        if (_prefs.ShowGroups)
+            items.Add(new("Gemeinsame Ausgaben", "/groups", "group",
+                "Ausgaben teilen und offene Beträge ausgleichen."));
+        items.Add(new("Auswertung", "/statistics", "insights",
+            "Monatsvergleich und Kategorien im Detail."));
+        items.Add(new("Finanzübersicht", "/finance-overview", "pie_chart",
+            "Vermögen, Verbindlichkeiten und Netto auf einen Blick."));
+        items.Add(new("Kontoauszug", "/bank-analysis", "account_balance",
+            "Importierte Bankumsätze prüfen und zuordnen."));
+        items.Add(new("Berichte", "/reports", "bar_chart",
+            "Monatsberichte lesen und auswerten."));
+        items.Add(new("Einstellungen", "/settings", "settings",
+            "Konten, Kategorien und Darstellung verwalten."));
+        return items;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         AppState.OnAccountChanged += OnAccountChanged;
+        PrefsService.OnChanged += OnPreferencesChanged;
+        _prefs = PrefsService.Current;
         await LoadAsync();
+    }
+
+    private async void OnPreferencesChanged()
+    {
+        _prefs = PrefsService.Current;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void OnAccountChanged()
@@ -274,180 +271,59 @@
     private async Task LoadAsync()
     {
         _loading = true;
-        int? accountId = AppState.SelectedAccountId;
-
         await using var db = await DbFactory.CreateDbContextAsync();
 
-        await LoadBalancesAsync(db, accountId);
-        if (accountId == null)
-            await LoadAccountBalancesAsync(db);
-        else
-            _accountBalances.Clear();
-        await LoadRecentTransactionsAsync(db, accountId);
-        await LoadUpcomingPaymentsAsync(db, accountId);
-        await LoadMonthlyChartAsync(db, accountId);
-        await LoadCategoryChartAsync(db, accountId);
-        await LoadBalanceChartAsync(db, accountId);
+        int? accountId = AppState.SelectedAccountId;
 
-        _loading = false;
-        _chartRenderKey++;
-    }
+        var accounts = await db.Accounts.Where(a => a.IsActive).ToListAsync();
+        _accountCount = accounts.Count;
 
-    private async Task LoadBalancesAsync(AppDbContext db, int? accountId)
-    {
-        var accounts = accountId.HasValue
-            ? await db.Accounts.Where(a => a.Id == accountId.Value).ToListAsync()
-            : await db.Accounts.Where(a => a.IsActive).ToListAsync();
+        var txQuery = db.Transactions.AsQueryable();
+        if (accountId.HasValue) txQuery = txQuery.Where(t => t.AccountId == accountId.Value);
 
-        decimal initialBalance = accounts.Sum(a => a.InitialBalance);
-        var tq = db.Transactions.AsQueryable();
-        if (accountId.HasValue) tq = tq.Where(t => t.AccountId == accountId.Value);
+        var txSums = await txQuery
+            .Select(t => new { t.Type, t.Amount })
+            .ToListAsync();
 
-        var allTx = await tq.Select(t => new { t.Type, t.Amount, t.Date }).ToListAsync();
-        var income = allTx.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
-        var expense = allTx.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+        var income = txSums.Where(s => s.Type == TransactionType.Income).Sum(s => s.Amount);
+        var expense = txSums.Where(s => s.Type == TransactionType.Expense).Sum(s => s.Amount);
+        _transactionCount = txSums.Count;
+
+        var initialBalance = accountId.HasValue
+            ? accounts.Where(a => a.Id == accountId.Value).Sum(a => a.InitialBalance)
+            : accounts.Sum(a => a.InitialBalance);
         _currentBalance = initialBalance + income - expense;
 
         var now = DateTime.Today;
-        var mStart = new DateTime(now.Year, now.Month, 1);
-        var mEnd = mStart.AddMonths(1);
-        _monthlyIncome = allTx.Where(t => t.Type == TransactionType.Income && t.Date >= mStart && t.Date < mEnd).Sum(t => t.Amount);
-        _monthlyExpenses = allTx.Where(t => t.Type == TransactionType.Expense && t.Date >= mStart && t.Date < mEnd).Sum(t => t.Amount);
+        var monthStart = new DateTime(now.Year, now.Month, 1);
+        _monthName = now.ToString("MMMM", _de);
+
+        var monthTx = await txQuery
+            .Where(t => t.Date >= monthStart && t.Date < monthStart.AddMonths(1))
+            .Select(t => new { t.Type, t.Amount })
+            .ToListAsync();
+        _monthlyIncome = monthTx.Where(s => s.Type == TransactionType.Income).Sum(s => s.Amount);
+        _monthlyExpenses = monthTx.Where(s => s.Type == TransactionType.Expense).Sum(s => s.Amount);
+
+        _categoryCount = await db.Categories.CountAsync();
+
+        _recentTransactions = await txQuery
+            .Include(t => t.Category)
+            .Include(t => t.Account)
+            .OrderByDescending(t => t.Date)
+            .ThenByDescending(t => t.CreatedAt)
+            .Take(6)
+            .ToListAsync();
 
         var cutoff = now.AddDays(30);
-        var scheduledQuery = db.ScheduledPayments.Where(s => !s.IsPaid && s.DueDate <= cutoff);
-        if (accountId.HasValue) scheduledQuery = scheduledQuery.Where(s => s.AccountId == accountId.Value);
-        var scheduled = await scheduledQuery.ToListAsync();
-        decimal scheduledSum = scheduled.Sum(p => p.Type == TransactionType.Income ? p.Amount : -p.Amount);
-
-        var recurringQuery = db.RecurringItems.Where(r => r.IsActive && (r.EndDate == null || r.EndDate > now));
-        if (accountId.HasValue) recurringQuery = recurringQuery.Where(r => r.AccountId == accountId.Value);
-        var recurring = await recurringQuery.ToListAsync();
-        decimal recurringSum = recurring.Sum(r =>
-        {
-            int occ = CountOccurrences(r, now.AddDays(1), cutoff);
-            return (r.Type == TransactionType.Income ? 1m : -1m) * r.Amount * occ;
-        });
-
-        _projectedBalance = _currentBalance + scheduledSum + recurringSum;
-    }
-
-    private async Task LoadAccountBalancesAsync(AppDbContext db)
-    {
-        var accounts = await db.Accounts.Where(a => a.IsActive).OrderBy(a => a.Name).ToListAsync();
-        _accountBalances = new List<AccountBalance>();
-        foreach (var acc in accounts)
-        {
-            var txData = await db.Transactions
-                .Where(t => t.AccountId == acc.Id)
-                .Select(t => new { t.Type, t.Amount })
-                .ToListAsync();
-            var income = txData.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
-            var expense = txData.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
-            _accountBalances.Add(new AccountBalance(acc.Name, acc.ColorHex, acc.InitialBalance + income - expense));
-        }
-    }
-
-    private static int CountOccurrences(RecurringItem item, DateTime from, DateTime to)
-    {
-        int count = 0;
-        var current = item.StartDate;
-        while (current < from) current = Advance(current, item.Interval);
-        while (current <= to) { count++; current = Advance(current, item.Interval); }
-        return count;
-    }
-
-    private static DateTime Advance(DateTime d, RecurringInterval i) => i switch
-    {
-        RecurringInterval.Weekly => d.AddDays(7),
-        RecurringInterval.Monthly => d.AddMonths(1),
-        RecurringInterval.Quarterly => d.AddMonths(3),
-        RecurringInterval.Yearly => d.AddYears(1),
-        _ => d.AddMonths(1)
-    };
-
-    private async Task LoadRecentTransactionsAsync(AppDbContext db, int? accountId)
-    {
-        var q = db.Transactions.Include(t => t.Category).Include(t => t.Account).AsQueryable();
-        if (accountId.HasValue) q = q.Where(t => t.AccountId == accountId.Value);
-        _recentTransactions = await q.OrderByDescending(t => t.Date).ThenByDescending(t => t.CreatedAt).Take(10).ToListAsync();
-    }
-
-    private async Task LoadUpcomingPaymentsAsync(AppDbContext db, int? accountId)
-    {
-        var cutoff = DateTime.Today.AddDays(30);
-        var q = db.ScheduledPayments.Include(s => s.Category).Where(s => !s.IsPaid && s.DueDate <= cutoff).OrderBy(s => s.DueDate).AsQueryable();
-        if (accountId.HasValue) q = q.Where(s => s.AccountId == accountId.Value);
-        _upcomingPayments = await q.ToListAsync();
-    }
-
-    private async Task LoadMonthlyChartAsync(AppDbContext db, int? accountId)
-    {
-        var q = db.Transactions.AsQueryable();
-        if (accountId.HasValue) q = q.Where(t => t.AccountId == accountId.Value);
-
-        var now = DateTime.Today;
-        var sixMonthsAgo = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
-        var allTx = await q.Where(t => t.Date >= sixMonthsAgo).Select(t => new { t.Type, t.Amount, t.Date }).ToListAsync();
-
-        _monthlyChartData = new List<MonthlyData>();
-        for (int i = 5; i >= 0; i--)
-        {
-            var m = now.AddMonths(-i);
-            var start = new DateTime(m.Year, m.Month, 1);
-            var end = start.AddMonths(1);
-            _monthlyChartData.Add(new MonthlyData
-            {
-                Month = m.ToString("MMM yy", _de),
-                Income = allTx.Where(t => t.Type == TransactionType.Income && t.Date >= start && t.Date < end).Sum(t => t.Amount),
-                Expenses = allTx.Where(t => t.Type == TransactionType.Expense && t.Date >= start && t.Date < end).Sum(t => t.Amount)
-            });
-        }
-    }
-
-    private async Task LoadCategoryChartAsync(AppDbContext db, int? accountId)
-    {
-        var now = DateTime.Today;
-        var mStart = new DateTime(now.Year, now.Month, 1);
-        var q = db.Transactions.Include(t => t.Category)
-            .Where(t => t.Type == TransactionType.Expense && t.Date >= mStart && t.Date < mStart.AddMonths(1))
+        var scheduledQuery = db.ScheduledPayments
+            .Where(s => !s.IsPaid && s.DueDate <= cutoff)
+            .OrderBy(s => s.DueDate)
             .AsQueryable();
-        if (accountId.HasValue) q = q.Where(t => t.AccountId == accountId.Value);
+        if (accountId.HasValue) scheduledQuery = scheduledQuery.Where(s => s.AccountId == accountId.Value);
+        _upcomingPayments = await scheduledQuery.Take(5).ToListAsync();
 
-        var transactions = await q.Select(t => new { t.CategoryId, CategoryName = t.Category!.Name, t.Category.ColorHex, t.Amount }).ToListAsync();
-        _categoryChartData = transactions
-            .GroupBy(t => new { t.CategoryId, t.CategoryName, t.ColorHex })
-            .Select(g => new CategoryData { Name = g.Key.CategoryName ?? "Ohne Kategorie", Amount = g.Sum(t => t.Amount), Color = g.Key.ColorHex ?? "#9E9E9E" })
-            .OrderByDescending(x => x.Amount).Take(8).ToList();
-    }
-
-    private async Task LoadBalanceChartAsync(AppDbContext db, int? accountId)
-    {
-        var q = db.Transactions.AsQueryable();
-        if (accountId.HasValue) q = q.Where(t => t.AccountId == accountId.Value);
-
-        var accounts = accountId.HasValue
-            ? await db.Accounts.Where(a => a.Id == accountId.Value).ToListAsync()
-            : await db.Accounts.Where(a => a.IsActive).ToListAsync();
-
-        var now = DateTime.Today;
-        var thirtyDaysAgo = now.AddDays(-29);
-        var allTx = await q.Where(t => t.Date >= thirtyDaysAgo && t.Date <= now).Select(t => new { t.Type, t.Amount, t.Date }).ToListAsync();
-        var priorTx = await q.Where(t => t.Date < thirtyDaysAgo).Select(t => new { t.Type, t.Amount }).ToListAsync();
-
-        decimal running = accounts.Sum(a => a.InitialBalance)
-            + priorTx.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount)
-            - priorTx.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
-
-        _balanceChartData = new List<BalanceData>();
-        for (int i = 29; i >= 0; i--)
-        {
-            var day = now.AddDays(-i);
-            var inc = allTx.Where(t => t.Type == TransactionType.Income && t.Date == day).Sum(t => t.Amount);
-            var exp = allTx.Where(t => t.Type == TransactionType.Expense && t.Date == day).Sum(t => t.Amount);
-            running += inc - exp;
-            _balanceChartData.Add(new BalanceData { Date = i % 5 == 0 ? day.ToString("dd.MM") : "", Balance = running });
-        }
+        _loading = false;
     }
 
     private async Task AddIncomeAsync()
@@ -455,7 +331,7 @@
         var parameters = new DialogParameters { ["IsExpense"] = false, ["HasTypePreset"] = true, ["AccountId"] = AppState.SelectedAccountId };
         var dialog = await DialogService.ShowAsync<TransactionDialog>("Einnahme hinzufügen", parameters);
         var result = await dialog.Result;
-        if (!result!.Canceled) await LoadAsync();
+        if (result is { Canceled: false }) await LoadAsync();
     }
 
     private async Task AddExpenseAsync()
@@ -463,7 +339,7 @@
         var parameters = new DialogParameters { ["IsExpense"] = true, ["HasTypePreset"] = true, ["AccountId"] = AppState.SelectedAccountId };
         var dialog = await DialogService.ShowAsync<TransactionDialog>("Ausgabe hinzufügen", parameters);
         var result = await dialog.Result;
-        if (!result!.Canceled) await LoadAsync();
+        if (result is { Canceled: false }) await LoadAsync();
     }
 
     private async Task AddScheduledPaymentAsync()
@@ -471,11 +347,12 @@
         var parameters = new DialogParameters { ["AccountId"] = AppState.SelectedAccountId };
         var dialog = await DialogService.ShowAsync<ScheduledPaymentDialog>("Geplante Zahlung hinzufügen", parameters);
         var result = await dialog.Result;
-        if (!result!.Canceled) await LoadAsync();
+        if (result is { Canceled: false }) await LoadAsync();
     }
 
     public void Dispose()
     {
         AppState.OnAccountChanged -= OnAccountChanged;
+        PrefsService.OnChanged -= OnPreferencesChanged;
     }
 }
