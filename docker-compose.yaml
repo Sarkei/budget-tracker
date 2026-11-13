@@ -15,7 +15,7 @@ services:
     environment:
       - DATA_PATH=/app/data
       - BANK_DATA_PATH=/data/bank
-      - OWNER_EMAIL=${OWNER_EMAIL:-nagraszust@gmail.com}
+      - OWNER_EMAIL=${OWNER_EMAIL:-}
       - BANK_SYNC_HOURS=${BANK_SYNC_HOURS:-6}
       - ASPNETCORE_ENVIRONMENT=Production
     networks:

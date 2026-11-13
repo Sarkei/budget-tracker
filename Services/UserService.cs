@@ -21,7 +21,7 @@ public class UserService
     /// die einzige Person, die die Finanzdaten sehen darf.
     /// </summary>
     public static string BesitzerEmail =>
-        (Environment.GetEnvironmentVariable("OWNER_EMAIL") ?? "nagraszust@gmail.com").Trim().ToLowerInvariant();
+        (Environment.GetEnvironmentVariable("OWNER_EMAIL") ?? "").Trim().ToLowerInvariant();
 
     public static bool IstBesitzer(string? email) =>
         !string.IsNullOrWhiteSpace(email) &&
