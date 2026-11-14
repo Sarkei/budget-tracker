@@ -1,0 +1,113 @@
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(Pot == null ? "Spartopf hinzufügen" : "Spartopf bearbeiten")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Name *" @bind-Value="_name" Variant="Variant.Outlined" Required="true" MaxLength="100" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Beschreibung" @bind-Value="_description" Variant="Variant.Outlined" Lines="2" MaxLength="500" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField T="decimal" Label="Sparziel (EUR) *" @bind-Value="_targetAmount" Variant="Variant.Outlined" Min="0.01m" Format="F2" Required="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField T="decimal" Label="Aktueller Stand (EUR)" @bind-Value="_currentAmount" Variant="Variant.Outlined" Min="0m" Format="F2" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="string" Label="Farbe" @bind-Value="_colorHex" Variant="Variant.Outlined">
+                    @foreach (var (hex, name) in _colorOptions)
+                    {
+                        <MudSelectItem T="string" Value="@hex">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="width:14px;height:14px;border-radius:50%;background:@hex;display:inline-block;flex-shrink:0;"></span>
+                                @name
+                            </div>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Abbrechen</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="SubmitAsync"
+                   Disabled="_saving">@(_saving ? "Speichern..." : "Speichern")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public SavingsPot? Pot { get; set; }
+
+    private static readonly (string Hex, string Name)[] _colorOptions =
+    [
+        ("#EF5350", "Rot"), ("#EC407A", "Pink"), ("#AB47BC", "Lila"), ("#7E57C2", "Dunkelviolett"),
+        ("#14B8A6", "Teal"), ("#26C6DA", "Cyan"), ("#26A69A", "Türkis"), ("#66BB6A", "Grün"),
+        ("#D4E157", "Hellgrün"), ("#FFCA28", "Gelb"), ("#FFA726", "Orange"), ("#FF7043", "Dunkelorange"),
+        ("#78909C", "Blaugräu"), ("#BDBDBD", "Grau"), ("#A3A3A3", "Schieferblau")
+    ];
+
+    private string _name = "";
+    private string _description = "";
+    private decimal _targetAmount = 100m;
+    private decimal _currentAmount = 0m;
+    private string _colorHex = "#14B8A6";
+    private bool _saving;
+
+    protected override void OnInitialized()
+    {
+        if (Pot != null)
+        {
+            _name = Pot.Name;
+            _description = Pot.Description ?? "";
+            _targetAmount = Pot.TargetAmount;
+            _currentAmount = Pot.CurrentAmount;
+            _colorHex = Pot.ColorHex;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_name) || _targetAmount <= 0) return;
+        _saving = true;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (Pot != null)
+        {
+            var entity = await db.SavingsPots.FindAsync(Pot.Id);
+            if (entity != null)
+            {
+                entity.Name = _name.Trim();
+                entity.Description = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
+                entity.TargetAmount = _targetAmount;
+                entity.CurrentAmount = _currentAmount;
+                entity.ColorHex = _colorHex;
+            }
+        }
+        else
+        {
+            db.SavingsPots.Add(new SavingsPot
+            {
+                Name = _name.Trim(),
+                Description = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim(),
+                TargetAmount = _targetAmount,
+                CurrentAmount = _currentAmount,
+                ColorHex = _colorHex,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

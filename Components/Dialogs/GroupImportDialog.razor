@@ -1,0 +1,354 @@
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject GroupCsvImportService ImportService
+@inject AppStateService AppState
+@using System.Globalization
+
+<MudDialog Style="max-width:900px; width:100%;">
+    <TitleContent>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <MudIcon Icon="@Icons.Material.Filled.UploadFile" Class="bt-text-brand" />
+            <MudText Typo="Typo.h6">Ausgabenverlauf importieren</MudText>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+
+        @if (_step == 0)
+        {
+            <div style="padding:8px 0 16px;">
+                <div style="text-align:center; padding:16px 0 20px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Description"
+                             Style="@($"color:{(_selectedFile != null ? "#66BB6A" : "#14B8A6")}; font-size:3.5rem; margin-bottom:10px;")" />
+                    <MudText Typo="Typo.body1" Style="color:#F5F5F5; margin-bottom:4px;">
+                        CSV-Datei mit Ausgabenverlauf hochladen
+                    </MudText>
+                    <MudText Typo="Typo.body2" Style="color:#A3A3A3; margin-bottom:20px;">
+                        Für Gruppen-Statistik und Geschichtsverlauf
+                    </MudText>
+                    <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelectedAsync" Accept=".csv,.txt">
+                        <ButtonTemplate>
+                            <MudButton HtmlTag="label" for="@context.Id"
+                                       Variant="@(_selectedFile != null ? Variant.Outlined : Variant.Filled)"
+                                       Color="Color.Secondary"
+                                       StartIcon="@Icons.Material.Filled.UploadFile">
+                                @(_selectedFile != null ? "Andere Datei wählen" : "CSV-Datei auswählen")
+                            </MudButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>
+                </div>
+
+                @if (_selectedFile != null)
+                {
+                    <div style="background:#262626; border:1px solid #404040; border-radius:12px; overflow:hidden; margin-bottom:16px;">
+                        <div style="padding:10px 14px; border-bottom:1px solid #404040; display:flex; align-items:center; gap:8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#66BB6A; font-size:1.1rem;" />
+                            <span style="color:#66BB6A; font-weight:600; font-size:0.88rem;">Datei ausgewählt</span>
+                        </div>
+                        <table class="gi-file-table">
+                            <tbody>
+                                <tr><td>Dateiname</td><td><strong>@_selectedFile.Name</strong></td></tr>
+                                <tr><td>Größe</td><td>@FormatFileSize(_selectedFile.Size)</td></tr>
+                                <tr><td>Geändert</td><td>@_selectedFile.LastModified.LocalDateTime.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.3); border-radius:12px; padding:12px 16px; display:flex; align-items:flex-start; gap:10px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Style="color:#14B8A6; font-size:1.2rem; flex-shrink:0; margin-top:2px;" />
+                        <span style="color:#A3A3A3; font-size:0.82rem; line-height:1.5;">
+                            <strong>CSV-Format:</strong> Datum;Beschreibung;Benutzername;Betrag;Währung;Notiz<br />
+                            <strong>Beispiel:</strong> 01.01.2024;Essen;anna;45.50;EUR;Restaurant<br />
+                            <strong>Datum:</strong> dd.MM.yyyy oder yyyy-MM-dd
+                        </span>
+                    </div>
+                }
+                else
+                {
+                    <div style="background:#262626; border:1px solid #404040; border-radius:12px; padding:14px 18px;">
+                        <div style="color:#A3A3A3; font-size:0.72rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">
+                            Format-Anforderungen
+                        </div>
+                        <div style="font-size:0.82rem; color:#A3A3A3; line-height:1.8;">
+                            <div><strong style="color:#F5F5F5;">Spalten (durch Semikolon getrennt):</strong></div>
+                            <div>• <strong>Datum:</strong> dd.MM.yyyy oder yyyy-MM-dd</div>
+                            <div>• <strong>Beschreibung:</strong> Text der Ausgabe</div>
+                            <div>• <strong>Benutzername:</strong> Wer hat bezahlt</div>
+                            <div>• <strong>Betrag:</strong> Gesamtbetrag (deutsches oder internationales Format)</div>
+                            <div>• <strong>Währung:</strong> EUR, USD, etc. (optional, Standard: EUR)</div>
+                            <div>• <strong>Notiz:</strong> Optional</div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_parseError))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-3" Dense="true">@_parseError</MudAlert>
+                }
+            </div>
+        }
+
+        else if (_step == 1)
+        {
+            <div style="text-align:center; padding:48px 0 40px;">
+                <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.subtitle1" Style="color:#F5F5F5; margin-top:20px; font-weight:700;">
+                    Datei wird analysiert...
+                </MudText>
+                <MudText Style="color:#A3A3A3; font-size:0.84rem; margin-top:6px;">
+                    Benutzerdaten werden validiert
+                </MudText>
+            </div>
+        }
+
+        else if (_step == 2 && _importResult != null)
+        {
+            <div style="margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                    <span class="gi-import-badge">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="font-size:0.85rem;" />
+                        Historien-Import
+                    </span>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                        @_importResult.Rows.Count Einträge
+                    </MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success">
+                        @_importResult.Rows.Count(r => r.IsSelected && string.IsNullOrEmpty(r.ValidationError)) gültig
+                    </MudChip>
+                </div>
+
+                @if (_importResult.Warnings.Any())
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+                        @foreach (var w in _importResult.Warnings)
+                        {
+                            <div>@w</div>
+                        }
+                    </MudAlert>
+                }
+
+                <MudText Typo="Typo.subtitle2" Style="color:#99F6E4; font-weight:700; margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em;">Vorschau</MudText>
+                <div style="max-height:400px; overflow-y:auto; border:1px solid #404040; border-radius:12px;">
+                    <table class="gi-preview-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30px;">
+                                    <MudCheckBox T="bool" Value="_selectAll" ValueChanged="ToggleSelectAll" />
+                                </th>
+                                <th>Datum</th>
+                                <th>Beschreibung</th>
+                                <th>Von</th>
+                                <th>Betrag</th>
+                                <th>Fehler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in _importResult.Rows)
+                            {
+                                var hasError = !string.IsNullOrEmpty(row.ValidationError);
+                                <tr class="@(hasError ? "error-row" : "")">
+                                    <td>
+                                        <MudCheckBox T="bool" 
+                                                    Value="@row.IsSelected" 
+                                                    ValueChanged="@((bool c) => row.IsSelected = !hasError && c)"
+                                                    Disabled="@hasError" />
+                                    </td>
+                                    <td>@row.Date.ToString("dd.MM.yyyy")</td>
+                                    <td>@row.Description</td>
+                                    <td>@row.PaidByUsername</td>
+                                    <td>@row.TotalAmount.ToString("N2", _de) @row.Currency</td>
+                                    <td style="@(hasError ? "color:#EF5350;" : "color:#A3A3A3;")">
+                                        @if (hasError)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Error" Style="font-size:0.8rem;" />
+                                            <span style="font-size:0.7rem;">@row.ValidationError</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <MudText Typo="Typo.caption" Style="color:#A3A3A3; margin-top:10px; line-height:1.6;">
+                    Importierte Ausgaben sind als <strong>Historisch</strong> gekennzeichnet und beeinflussen nicht die aktuellen Schuldenbeträge.
+                    Sie werden nur für Statistiken und Berichte verwendet.
+                </MudText>
+            </div>
+        }
+
+    </DialogContent>
+
+    <DialogActions>
+        @if (_step == 0)
+        {
+            <MudButton OnClick="Cancel">Abbrechen</MudButton>
+            <MudButton Color="Color.Secondary"
+                       Disabled="@(_selectedFile == null || _isLoading)"
+                       OnClick="AnalyzeFileAsync">
+                @if (_isLoading)
+                {
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mud-width-full" />
+                }
+                else
+                {
+                    <span>Analysieren</span>
+                }
+            </MudButton>
+        }
+        else if (_step == 2)
+        {
+            <MudButton OnClick="Cancel">Abbrechen</MudButton>
+            <MudButton Color="Color.Secondary"
+                       Disabled="@(!_importResult!.Rows.Any(r => r.IsSelected && string.IsNullOrEmpty(r.ValidationError)) || _isImporting)"
+                       OnClick="ImportAsync">
+                @if (_isImporting)
+                {
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mud-width-full" />
+                }
+                else
+                {
+                    <span>Importieren</span>
+                }
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance? MudDialog { get; set; }
+    [Parameter] public int GroupId { get; set; }
+
+    private IBrowserFile? _selectedFile;
+    private GroupImportResult? _importResult;
+    private int _step = 0; // 0: Upload, 1: Loading, 2: Preview
+    private bool _isLoading;
+    private bool _isImporting;
+    private string? _parseError;
+    private bool _selectAll;
+    private static readonly CultureInfo _de = CultureInfo.GetCultureInfo("de-DE");
+
+    private async Task OnFileSelectedAsync(IBrowserFile file)
+    {
+        _selectedFile = file;
+        _parseError = null;
+    }
+
+    private async Task AnalyzeFileAsync()
+    {
+        if (_selectedFile == null)
+            return;
+
+        _isLoading = true;
+        _step = 1;
+        _parseError = null;
+
+        try
+        {
+            using (var stream = _selectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024))
+            {
+                _importResult = ImportService.ParseCsv(stream);
+            }
+
+            // Filter out rows with validation errors from preview but keep them for display
+            _step = 2;
+        }
+        catch (Exception ex)
+        {
+            _parseError = $"Fehler beim Laden der Datei: {ex.Message}";
+            _step = 0;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ImportAsync()
+    {
+        if (_importResult == null)
+            return;
+
+        _isImporting = true;
+
+        try
+        {
+            using (var db = DbFactory.CreateDbContext())
+            {
+                var group = await db.SharedGroups.FindAsync(GroupId);
+                if (group == null)
+                {
+                    _parseError = "Gruppe nicht gefunden";
+                    return;
+                }
+
+                // Build user cache for faster lookup
+                var allUsers = await db.Users.ToListAsync();
+                var userCache = allUsers.ToDictionary(u => u.Username.ToLower(), u => u);
+
+                // Get selected rows
+                var selectedRows = _importResult.Rows
+                    .Where(r => r.IsSelected && string.IsNullOrEmpty(r.ValidationError))
+                    .ToList();
+
+                if (!selectedRows.Any())
+                {
+                    _parseError = "Keine gültigen Zeilen zum Importieren ausgewählt";
+                    return;
+                }
+
+                // Import
+                var (importedCount, errors) = await ImportService.ImportRowsAsync(db, group, selectedRows, userCache);
+
+                if (importedCount > 0)
+                {
+                    await db.SaveChangesAsync();
+                }
+
+                if (errors.Any())
+                {
+                    _parseError = $"{importedCount} Einträge importiert. Fehler:\n" + string.Join("\n", errors);
+                }
+                else
+                {
+                    // Success
+                    MudDialog?.Close(DialogResult.Ok($"{importedCount} Einträge importiert"));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _parseError = $"Import-Fehler: {ex.Message}";
+        }
+        finally
+        {
+            _isImporting = false;
+        }
+    }
+
+    private void ToggleSelectAll(bool isChecked)
+    {
+        _selectAll = isChecked;
+        if (_importResult != null)
+        {
+            foreach (var row in _importResult.Rows)
+            {
+                if (string.IsNullOrEmpty(row.ValidationError))
+                    row.IsSelected = isChecked;
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+}

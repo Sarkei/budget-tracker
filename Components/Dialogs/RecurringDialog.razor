@@ -1,0 +1,185 @@
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject AppStateService AppState
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(ExistingItem == null ? "Wiederk. Posten hinzufügen" : "Posten bearbeiten")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Name *" @bind-Value="_name" Variant="Variant.Outlined"
+                              Required="true" MaxLength="100" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="int" Label="Konto *" @bind-Value="_accountId" Variant="Variant.Outlined" Required="true">
+                    @foreach (var a in _accounts) { <MudSelectItem Value="a.Id">@a.Name</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                @if (!HasTypePreset || ExistingItem != null)
+                {
+                    <MudSelect T="TransactionType" Label="Typ *" @bind-Value="_type" Variant="Variant.Outlined">
+                        <MudSelectItem Value="TransactionType.Income">Einnahme</MudSelectItem>
+                        <MudSelectItem Value="TransactionType.Expense">Ausgabe</MudSelectItem>
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudTextField Label="Typ" Value="@(_type == TransactionType.Income ? "Einnahme" : "Ausgabe")"
+                                  ReadOnly="true" Variant="Variant.Outlined" Disabled="true"
+                                  Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Lock" />
+                }
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField T="decimal" Label="Betrag *" @bind-Value="_amount" Variant="Variant.Outlined"
+                                 Min="0.01m" Format="F2" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="RecurringInterval" Label="Intervall *" @bind-Value="_interval" Variant="Variant.Outlined">
+                    <MudSelectItem Value="RecurringInterval.Weekly">Wöchentlich</MudSelectItem>
+                    <MudSelectItem Value="RecurringInterval.Monthly">Monatlich</MudSelectItem>
+                    <MudSelectItem Value="RecurringInterval.Quarterly">Quartalsweise</MudSelectItem>
+                    <MudSelectItem Value="RecurringInterval.Yearly">Jährlich</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="int?" Label="Kategorie" @bind-Value="_categoryId" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var c in FilteredCategories) { <MudSelectItem Value="@((int?)c.Id)">@c.Name</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudDatePicker Label="Startdatum *" @bind-Date="_startDate" Variant="Variant.Outlined" DateFormat="dd.MM.yyyy" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudDatePicker Label="Enddatum (optional)" @bind-Date="_endDate" Variant="Variant.Outlined"
+                               DateFormat="dd.MM.yyyy" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudCheckBox T="bool" @bind-Value="_isInstallment" Label="Ratenzahlung" />
+            </MudItem>
+            @if (_isInstallment)
+            {
+                <MudItem xs="6">
+                    <MudNumericField T="int" Label="Raten gesamt" @bind-Value="_totalInstallments" Variant="Variant.Outlined" Min="1" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="int" Label="Raten bezahlt" @bind-Value="_paidInstallments" Variant="Variant.Outlined" Min="0" />
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Abbrechen</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="SubmitAsync"
+                   Disabled="_saving">@(_saving ? "Speichern..." : "Speichern")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public RecurringItem? ExistingItem { get; set; }
+    [Parameter] public int? AccountId { get; set; }
+    [Parameter] public bool IsExpense { get; set; }
+    [Parameter] public bool HasTypePreset { get; set; }
+
+    private List<Account> _accounts = new();
+    private List<Category> _categories = new();
+
+    private IEnumerable<Category> FilteredCategories => _categories.Where(c =>
+        c.Type == CategoryType.Both ||
+        (c.Type == CategoryType.Income && _type == TransactionType.Income) ||
+        (c.Type == CategoryType.Expense && _type == TransactionType.Expense));
+
+    private string _name = "";
+    private int _accountId;
+    private TransactionType _type = TransactionType.Expense;
+    private decimal _amount;
+    private RecurringInterval _interval = RecurringInterval.Monthly;
+    private int? _categoryId;
+    private DateTime? _startDate = DateTime.Today;
+    private DateTime? _endDate;
+    private bool _isInstallment;
+    private int _totalInstallments = 12;
+    private int _paidInstallments;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _accounts = await db.Accounts.Where(a => a.IsActive).ToListAsync();
+        _categories = await db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+
+        if (ExistingItem != null)
+        {
+            _name = ExistingItem.Name;
+            _accountId = ExistingItem.AccountId;
+            _type = ExistingItem.Type;
+            _amount = ExistingItem.Amount;
+            _interval = ExistingItem.Interval;
+            _categoryId = ExistingItem.CategoryId;
+            _startDate = ExistingItem.StartDate;
+            _endDate = ExistingItem.EndDate;
+            _isInstallment = ExistingItem.IsInstallment;
+            _totalInstallments = ExistingItem.TotalInstallments ?? 12;
+            _paidInstallments = ExistingItem.PaidInstallments;
+        }
+        else
+        {
+            _accountId = AccountId ?? (_accounts.FirstOrDefault()?.Id ?? 0);
+            if (HasTypePreset) _type = IsExpense ? TransactionType.Expense : TransactionType.Income;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_name) || _accountId == 0 || _amount <= 0 || _startDate == null) return;
+        _saving = true;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (ExistingItem != null)
+        {
+            var entity = await db.RecurringItems.FindAsync(ExistingItem.Id);
+            if (entity != null)
+            {
+                entity.Name = _name.Trim();
+                entity.AccountId = _accountId;
+                entity.Type = _type;
+                entity.Amount = _amount;
+                entity.Interval = _interval;
+                entity.CategoryId = _categoryId;
+                entity.StartDate = _startDate!.Value;
+                entity.EndDate = _endDate;
+                entity.IsInstallment = _isInstallment;
+                entity.TotalInstallments = _totalInstallments;
+                entity.PaidInstallments = _paidInstallments;
+            }
+        }
+        else
+        {
+            db.RecurringItems.Add(new RecurringItem
+            {
+                Name = _name.Trim(),
+                AccountId = _accountId,
+                Type = _type,
+                Amount = _amount,
+                Interval = _interval,
+                CategoryId = _categoryId,
+                StartDate = _startDate!.Value,
+                EndDate = _endDate,
+                IsInstallment = _isInstallment,
+                TotalInstallments = _totalInstallments,
+                PaidInstallments = _paidInstallments,
+                IsActive = true
+            });
+        }
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        AppState.NotifyTransactionChanged();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

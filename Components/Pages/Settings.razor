@@ -1,0 +1,1227 @@
+@page "/settings"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@implements IDisposable
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject IDialogService DialogService
+@inject UserService UserService
+@inject UserPreferencesService PrefsService
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+@inject GroupNotificationService GroupNotifSvc
+
+<PageTitle>Einstellungen – Budget Tracker</PageTitle>
+
+
+<PageToolbar Title="Einstellungen" />
+
+@if (_loading) { <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mb-4" /> }
+
+<div class="settings-layout">
+
+    <!-- ── Left sidebar ───────────────────────────── -->
+    <nav class="settings-nav">
+        <div class="settings-nav-label">Account</div>
+        <button class="settings-nav-item @(_activeSection == "account" ? "active" : "")"
+                @onclick='() => _activeSection = "account"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.ManageAccounts" /></span>
+            <span class="s-label">Mein Konto</span>
+        </button>
+
+        <div class="settings-nav-label" style="margin-top:2px;">App</div>
+        <button class="settings-nav-item @(_activeSection == "features" ? "active" : "")"
+                @onclick='() => _activeSection = "features"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.Tune" /></span>
+            <span class="s-label">Features</span>
+        </button>
+        <button class="settings-nav-item @(_activeSection == "darstellung" ? "active" : "")"
+                @onclick='() => _activeSection = "darstellung"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.Palette" /></span>
+            <span class="s-label">Darstellung</span>
+        </button>
+        <button class="settings-nav-item @(_activeSection == "budget" ? "active" : "")"
+                @onclick='() => _activeSection = "budget"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.Savings" /></span>
+            <span class="s-label">Budget &amp; Limits</span>
+        </button>
+
+        <div class="settings-nav-label" style="margin-top:2px;">Daten</div>
+        <button class="settings-nav-item @(_activeSection == "konten" ? "active" : "")"
+                @onclick='() => _activeSection = "konten"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" /></span>
+            <span class="s-label">Konten</span>
+        </button>
+        <button class="settings-nav-item @(_activeSection == "kategorien" ? "active" : "")"
+                @onclick='() => _activeSection = "kategorien"'>
+            <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.Label" /></span>
+            <span class="s-label">Kategorien</span>
+        </button>
+
+        @if (_isAdmin)
+        {
+            <div class="settings-nav-label" style="margin-top:2px;">Admin</div>
+            <button class="settings-nav-item @(_activeSection == "admin-users" ? "active" : "")"
+                    @onclick='() => { _activeSection = "admin-users"; _ = LoadAdminDataAsync(); }'>
+                <span class="s-icon"><MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" /></span>
+                <span class="s-label">Benutzer</span>
+            </button>
+        }
+    </nav>
+
+    <!-- ── Content ────────────────────────────────── -->
+    <div class="settings-content">
+
+        @* ─── Mein Konto ─────────────────────────── *@
+        @if (_activeSection == "account")
+        {
+            <span class="st-section-title">Mein Konto</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.AlternateEmail" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Accountinformationen</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body">
+                    <MudText Typo="Typo.caption" Class="bt-field-label">E-Mail-Adresse</MudText>
+                    <MudText Typo="Typo.body1" Class="bt-field-value" Style="margin-bottom:14px;">@_currentEmail</MudText>
+                    @if (_showEmailForm)
+                    {
+                        <div style="display:flex;flex-direction:column;gap:10px;max-width:420px;">
+                            <div style="position:relative;">
+                                <MudTextField T="string" Label="Neue E-Mail *" @bind-Value="_newEmail"
+                                              Variant="Variant.Outlined" InputType="InputType.Email"
+                                              Immediate="true" DebounceInterval="450"
+                                              OnDebounceIntervalElapsed="OnEmailDebounceAsync"
+                                              Adornment="@(_emailChecked ? Adornment.End : Adornment.None)"
+                                              AdornmentIcon="@(_emailValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                              AdornmentColor="@(_emailValid ? Color.Success : Color.Error)" />
+                            </div>
+                            @if (_emailChecking)
+                            {
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="width:14px;height:14px;" />
+                                    <MudText Typo="Typo.caption" Class="bt-text-dim">Prüfe E-Mail...</MudText>
+                                </div>
+                            }
+                            else if (_emailChecked && !string.IsNullOrWhiteSpace(_newEmail))
+                            {
+                                @if (_emailValid)
+                                {
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="bt-text-success" Style="font-size:15px;" />
+                                        <MudText Typo="Typo.caption" Class="bt-text-success">E-Mail-Adresse ist zugelassen.</MudText>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="display:flex;flex-direction:column;gap:2px;">
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Cancel" Class="bt-text-error" Style="font-size:15px;" />
+                                            <MudText Typo="Typo.caption" Class="bt-text-error">@_emailHint</MudText>
+                                        </div>
+                                        @if (_emailNotTrusted)
+                                        {
+                                            <MudText Typo="Typo.caption" Style="color:#78909C;margin-left:21px;">Bitte wende dich an den Administrator, um diese E-Mail freischalten zu lassen.</MudText>
+                                        }
+                                    </div>
+                                }
+                            }
+                            <div style="display:flex;gap:8px;">
+                                <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                           OnClick="ChangeEmailAsync" Disabled="_saving || !_emailValid">Speichern</MudButton>
+                                <MudButton Variant="Variant.Text" OnClick="CancelEmailForm">Abbrechen</MudButton>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick="OpenEmailForm">
+                            E-Mail ändern
+                        </MudButton>
+                    }
+
+                    <div style="height:20px;"></div>
+                    <MudText Typo="Typo.caption" Class="bt-field-label">Name</MudText>
+                    @if (_showNameForm)
+                    {
+                        <div style="display:flex;flex-direction:column;gap:10px;max-width:420px;margin-top:8px;">
+                            <div style="display:flex;gap:8px;">
+                                <MudTextField @bind-Value="_editFirstName" Label="Vorname" Variant="Variant.Outlined" Style="flex:1;" />
+                                <MudTextField @bind-Value="_editLastName" Label="Nachname" Variant="Variant.Outlined" Style="flex:1;" />
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                           OnClick="SaveNameAsync" Disabled="_saving">Speichern</MudButton>
+                                <MudButton Variant="Variant.Text" OnClick="() => _showNameForm = false">Abbrechen</MudButton>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1" Class="bt-field-value" Style="margin-bottom:8px;">@_currentFirstName @_currentLastName</MudText>
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick="OpenNameForm">
+                            Name ändern
+                        </MudButton>
+                    }
+                </div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Passwort ändern</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body">
+                    <div style="display:flex;flex-direction:column;gap:12px;max-width:420px;">
+                        <MudTextField @bind-Value="_currentPassword" Label="Aktuelles Passwort"
+                                      Variant="Variant.Outlined" InputType="InputType.Password" />
+                        <MudTextField @bind-Value="_newPassword" Label="Neues Passwort"
+                                      Variant="Variant.Outlined" InputType="InputType.Password" />
+                        <MudTextField @bind-Value="_confirmPassword" Label="Neues Passwort bestätigen"
+                                      Variant="Variant.Outlined" InputType="InputType.Password" />
+                        <div>
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                       OnClick="ChangePasswordAsync" Disabled="_saving">Passwort speichern</MudButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="st-card st-card--danger">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="bt-text-error bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-error" Style="font-weight:600;">Account deaktivieren</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body">
+                    <MudText Typo="Typo.body2" Style="color:#78909C;margin-bottom:14px;">
+                        Dein Account wird dauerhaft deaktiviert. Alle Daten bleiben erhalten, du kannst dich jedoch
+                        nicht mehr einloggen. Diese Aktion kann nicht rückgängig gemacht werden.
+                    </MudText>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                               OnClick="DeleteAccountAsync" Disabled="_saving">Account deaktivieren</MudButton>
+                </div>
+            </div>
+        }
+
+        @* ─── Features ───────────────────────────── *@
+        @if (_activeSection == "features")
+        {
+            <span class="st-section-title">Features ein- / ausschalten</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.Tune" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">App-Module</MudText>
+                    </div>
+                </div>
+                
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Wiederkehrende Buchungen</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Regelmäßige Einnahmen und Ausgaben verwalten</MudText>
+                    </div>
+                    <MudSwitch Value="_prefs.ShowRecurring" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowRecurring = v))" Color="Color.Secondary" />
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Spartöpfe</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Spar-Ziele anlegen und verfolgen</MudText>
+                    </div>
+                    <MudSwitch Value="_prefs.ShowSavingsPots" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowSavingsPots = v))" Color="Color.Secondary" />
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Geplante Zahlungen</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Zukünftig fällige Zahlungen vorausplanen</MudText>
+                    </div>
+                    <MudSwitch Value="_prefs.ShowScheduledPayments" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowScheduledPayments = v))" Color="Color.Secondary" />
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Gruppen &amp; Ausgaben teilen</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Gemeinsame Ausgaben mit anderen splitten</MudText>
+                    </div>
+                    <MudSwitch Value="_prefs.ShowGroups" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowGroups = v))" Color="Color.Secondary" />
+                </div>
+            </div>
+        }
+
+        @* ─── Darstellung ────────────────────────── *@
+        @if (_activeSection == "darstellung")
+        {
+            <span class="st-section-title">Darstellung</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.DashboardCustomize" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Layout</MudText>
+                    </div>
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Konto-Boxen im Dashboard</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Zeigt Mini-Karten pro Konto bei "Alle Konten"</MudText>
+                    </div>
+                    <MudSwitch @bind-Value="_prefs.ShowAccountMiniBoxes" Color="Color.Secondary" />
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Kompaktansicht</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Kleinere Abstände und kompaktere Darstellung</MudText>
+                    </div>
+                    <MudSwitch @bind-Value="_prefs.CompactMode" Color="Color.Secondary" />
+                </div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.Translate" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Formatierung</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body">
+                    <div style="display:flex;flex-direction:column;gap:14px;max-width:380px;">
+                        <MudSelect @bind-Value="_prefs.Currency" Label="Standardwährung"
+                                   Variant="Variant.Outlined" AnchorOrigin="Origin.BottomLeft">
+                            <MudSelectItem Value="@("EUR")">€ – Euro</MudSelectItem>
+                            <MudSelectItem Value="@("USD")">$ – US-Dollar</MudSelectItem>
+                            <MudSelectItem Value="@("GBP")">£ – Britisches Pfund</MudSelectItem>
+                            <MudSelectItem Value="@("CHF")">CHF – Schweizer Franken</MudSelectItem>
+                            <MudSelectItem Value="@("JPY")">¥ – Japanischer Yen</MudSelectItem>
+                        </MudSelect>
+
+                        <MudSelect @bind-Value="_prefs.DateFormat" Label="Datumsformat"
+                                   Variant="Variant.Outlined" AnchorOrigin="Origin.BottomLeft">
+                            <MudSelectItem Value="@("dd.MM.yyyy")">31.03.2026</MudSelectItem>
+                            <MudSelectItem Value="@("yyyy-MM-dd")">2026-03-31</MudSelectItem>
+                            <MudSelectItem Value="@("MM/dd/yyyy")">03/31/2026</MudSelectItem>
+                            <MudSelectItem Value="@("d. MMMM yyyy")">31. März 2026</MudSelectItem>
+                        </MudSelect>
+                    </div>
+                </div>
+            </div>
+
+            <div class="st-save-row" style="display:flex;">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SavePrefsAsync" Disabled="_saving">Einstellungen speichern</MudButton>
+            </div>
+        }
+
+        @* ─── Budget & Limits ────────────────────── *@
+        @if (_activeSection == "budget")
+        {
+            <span class="st-section-title">Budget &amp; Limits</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.NotificationsActive" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Monatsbudget-Warnung</MudText>
+                    </div>
+                </div>
+
+                <div class="st-toggle-row">
+                    <div class="st-toggle-text">
+                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Budget-Warnung aktivieren</MudText>
+                        <MudText Typo="Typo.caption" Class="bt-text-muted">Warnt auf dem Dashboard wenn das Monatsbudget überschritten wird</MudText>
+                    </div>
+                    <MudSwitch @bind-Value="_prefs.EnableBudgetWarnings" Color="Color.Secondary" />
+                </div>
+
+                @if (_prefs.EnableBudgetWarnings)
+                {
+                    <div class="st-card-body" style="border-top:1px solid #222;">
+                        <div style="max-width:280px;">
+                            <MudTextField @bind-Value="_budgetLimitStr"
+                                          Label="Monatliches Budget-Limit"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.End"
+                                          AdornmentText="€"
+                                          HelperText="Ausgaben über diesem Betrag lösen eine Warnung aus" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="st-save-row" style="display:flex;">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SaveBudgetAsync" Disabled="_saving">Einstellungen speichern</MudButton>
+            </div>
+        }
+
+        @* ─── Konten ─────────────────────────────── *@
+        @if (_activeSection == "konten")
+        {
+            <span class="st-section-title">Konten</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Alle Konten</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Add" OnClick="AddAccountAsync">
+                        Konto hinzufügen
+                    </MudButton>
+                </div>
+
+                @if (!_accounts.Any())
+                {
+                    <div class="st-empty-body">
+                        Noch keine Konten vorhanden.
+                    </div>
+                }
+                else
+                {
+                    @foreach (var account in _accounts)
+                    {
+                        <div class="st-list-row">
+                            <div class="st-dot" style="background:@account.ColorHex;"></div>
+                            <div class="st-list-info">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                                    <span class="st-list-name">@account.Name</span>
+                                    @if (account.IsDefault)
+                                    {
+                                        <span class="st-badge-default">Hauptkonto</span>
+                                    }
+                                </div>
+                                <span class="st-list-meta">
+                                    @account.AccountType · @account.InitialBalance.ToString("C2", _de) · @account.Currency
+                                </span>
+                            </div>
+                            <div class="st-list-actions">
+                                <MudTooltip Text="@(account.IsDefault ? "Hauptkonto entfernen" : "Als Hauptkonto setzen")">
+                                    <MudIconButton Icon="@(account.IsDefault ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarBorder)"
+                                                   Size="Size.Small"
+                                                   Color="@(account.IsDefault ? Color.Warning : Color.Default)"
+                                                   OnClick="() => SetDefaultAccountAsync(account)" />
+                                </MudTooltip>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               Color="Color.Secondary"
+                                               OnClick="() => EditAccountAsync(account)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="() => DeleteAccountAsync(account)" />
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+
+        @* ─── Kategorien ─────────────────────────── *@
+        @if (_activeSection == "kategorien")
+        {
+            <span class="st-section-title">Kategorien</span>
+
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.Label" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Alle Kategorien</MudText>
+                        <span style="font-size:12px;color:#A3A3A3;margin-left:4px;">(@_categories.Count)</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <MudTooltip Text="@(_categorySortAsc ? "A → Z" : "Z → A")">
+                            <MudIconButton Icon="@(_categorySortAsc ? Icons.Material.Filled.SortByAlpha : Icons.Material.Filled.Sort)"
+                                           Size="Size.Small" OnClick="ToggleCategorySort" />
+                        </MudTooltip>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Add" OnClick="AddCategoryAsync">
+                            Hinzufügen
+                        </MudButton>
+                    </div>
+                </div>
+
+                @if (!_categories.Any())
+                {
+                    <div class="st-empty-body">
+                        Noch keine Kategorien vorhanden.
+                    </div>
+                }
+
+                @if (IncomeCategories.Any())
+                {
+                    <div style="padding:8px 18px 4px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#37474F;border-top:1px solid #222;">
+                        Einnahmen
+                    </div>
+                    @foreach (var cat in IncomeCategories)
+                    {
+                        <div class="st-list-row">
+                            <div class="st-dot" style="background:@cat.ColorHex;"></div>
+                            <div class="st-list-info">
+                                <span class="st-list-name">@cat.Name</span>
+                            </div>
+                            <span class="st-type-badge" style="background:rgba(102,187,106,0.15);color:#66BB6A;margin-right:8px;">Einnahme</span>
+                            <div class="st-list-actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => DeleteCategoryAsync(cat)" />
+                            </div>
+                        </div>
+                    }
+                }
+
+                @if (ExpenseCategories.Any())
+                {
+                    <div style="padding:8px 18px 4px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#37474F;border-top:1px solid #222;">
+                        Ausgaben
+                    </div>
+                    @foreach (var cat in ExpenseCategories)
+                    {
+                        <div class="st-list-row">
+                            <div class="st-dot" style="background:@cat.ColorHex;"></div>
+                            <div class="st-list-info">
+                                <span class="st-list-name">@cat.Name</span>
+                            </div>
+                            <span class="st-type-badge" style="background:rgba(239,83,80,0.15);color:#EF5350;margin-right:8px;">Ausgabe</span>
+                            <div class="st-list-actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => DeleteCategoryAsync(cat)" />
+                            </div>
+                        </div>
+                    }
+                }
+
+                @if (BothCategories.Any())
+                {
+                    <div style="padding:8px 18px 4px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#37474F;border-top:1px solid #222;">
+                        Beides
+                    </div>
+                    @foreach (var cat in BothCategories)
+                    {
+                        <div class="st-list-row">
+                            <div class="st-dot" style="background:@cat.ColorHex;"></div>
+                            <div class="st-list-info">
+                                <span class="st-list-name">@cat.Name</span>
+                            </div>
+                            <span class="st-type-badge" style="background:rgba(120,144,156,0.15);color:#A3A3A3;margin-right:8px;">Beides</span>
+                            <div class="st-list-actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => DeleteCategoryAsync(cat)" />
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+
+        @* ─── Admin: Benutzer ────────────────────────── *@
+        @if (_activeSection == "admin-users" && _isAdmin)
+        {
+            <span class="st-section-title">Benutzerverwaltung</span>
+
+            @* Trusted E-Mails *@
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.MarkEmailRead" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Zugelassene E-Mail-Adressen</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body">
+                    <MudText Typo="Typo.body2" Style="color:#78909C;margin-bottom:12px;">
+                        Nur E-Mail-Adressen auf dieser Liste dürfen sich registrieren. Der erste Account ist immer freigeschaltet.
+                    </MudText>
+                    <div style="display:flex;gap:8px;max-width:460px;margin-bottom:16px;">
+                        <MudTextField @bind-Value="_newTrustedEmail" Label="E-Mail hinzufügen"
+                                      Variant="Variant.Outlined" InputType="InputType.Email"
+                                      Style="flex:1;" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                   OnClick="AddTrustedEmailAsync" Disabled="_saving"
+                                   Style="align-self:center;white-space:nowrap;">Hinzufügen</MudButton>
+                    </div>
+                    @if (_trustedEmails.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:#A3A3A3;font-style:italic;">Noch keine E-Mails hinterlegt.</MudText>
+                    }
+                    else
+                    {
+                        @foreach (var te in _trustedEmails)
+                        {
+                            <div class="st-list-row">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Style="color:#14B8A6;font-size:18px;flex-shrink:0;" />
+                                <div class="st-list-info">
+                                    <span class="st-list-name">@te.Email</span>
+                                    <span style="font-size:11px;color:#A3A3A3;">Hinzugefügt: @te.AddedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => RemoveTrustedEmailAsync(te.Id)" />
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            @* User list *@
+            <div class="st-card">
+                <div class="st-card-header">
+                    <div class="st-card-header-left">
+                        <MudIcon Icon="@Icons.Material.Filled.Group" Class="bt-text-brand bt-icon-section" />
+                        <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Alle Benutzer</MudText>
+                    </div>
+                </div>
+                <div class="st-card-body" style="padding:0;overflow-x:auto;">
+                    @if (_adminUsers.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:#A3A3A3;font-style:italic;padding:16px;">Keine Benutzer gefunden.</MudText>
+                    }
+                    else
+                    {
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:2px solid #303030;">
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Vorname</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Nachname</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">E-Mail</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Letzter Login</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Status</th>
+                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Bearbeiten</th>
+                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Deaktivieren</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in _adminUsers)
+                                {
+                                    <tr style="border-bottom:1px solid #222;@(u.IsActive ? "" : "opacity:0.55;")transition:background 0.1s;"
+                                        @onmouseenter="() => {}"
+                                        class="admin-user-row">
+                                        <td style="padding:11px 14px;color:#CFD8DC;font-weight:500;white-space:nowrap;">
+                                            @u.FirstName
+                                            @if (u.Id == _currentUserId)
+                                            {
+                                                <span style="font-size:10px;color:#A3A3A3;margin-left:5px;">(Du)</span>
+                                            }
+                                            @if (u.Role == UserRole.Admin)
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="color:#FFA726;font-size:13px;vertical-align:middle;margin-left:4px;" Title="Admin" />
+                                            }
+                                        </td>
+                                        <td style="padding:11px 14px;color:#CFD8DC;">@u.LastName</td>
+                                        <td style="padding:11px 14px;color:#A3A3A3;font-size:12px;">@u.Username</td>
+                                        <td style="padding:11px 14px;color:#78909C;font-size:12px;white-space:nowrap;">
+                                            @(u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "—")
+                                        </td>
+                                        <td style="padding:11px 14px;white-space:nowrap;">
+                                            <span style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;
+                                                         background:@(u.IsActive ? "rgba(102,187,106,0.15)" : "rgba(239,83,80,0.15)");
+                                                         color:@(u.IsActive ? "#66BB6A" : "#EF5350");">
+                                                @(u.IsActive ? "Aktiv" : "Deaktiviert")
+                                            </span>
+                                        </td>
+                                        <td style="padding:6px 14px;text-align:center;white-space:nowrap;">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                           Color="Color.Secondary" Title="Bearbeiten"
+                                                           OnClick="() => OpenAdminEditUser(u)" />
+                                        </td>
+                                        <td style="padding:6px 14px;text-align:center;white-space:nowrap;">
+                                            @if (u.Id != _currentUserId)
+                                            {
+                                                @if (u.IsActive)
+                                                {
+                                                    <MudIconButton Icon="@Icons.Material.Filled.PersonOff" Size="Size.Small"
+                                                                   Color="Color.Warning" Title="Deaktivieren"
+                                                                   OnClick="() => ToggleUserActiveAsync(u, false)" />
+                                                }
+                                                else
+                                                {
+                                                    <MudIconButton Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small"
+                                                                   Color="Color.Success" Title="Aktivieren"
+                                                                   OnClick="() => ToggleUserActiveAsync(u, true)" />
+                                                    <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Small"
+                                                                   Color="Color.Error" Title="Endgültig löschen"
+                                                                   OnClick="() => DeleteUserPermanentlyAsync(u)" />
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        }
+
+    </div><!-- /settings-content -->
+</div><!-- /settings-layout -->
+
+@* ── Admin: Edit User panel (slide-in overlay) ── *@
+@if (_adminEditUser != null)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1300;" @onclick="CancelAdminEditUser"></div>
+    <div style="position:fixed;top:0;right:0;width:360px;max-width:100vw;height:100vh;background:#1e1e1e;border-left:1px solid #404040;z-index:1400;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.5);"
+         @onclick:stopPropagation="true">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #303030;">
+            <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Benutzer bearbeiten</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="CancelAdminEditUser" Size="Size.Small" />
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;gap:10px;">
+                <MudTextField @bind-Value="_adminEditFirstName" Label="Vorname" Variant="Variant.Outlined" Style="flex:1;" />
+                <MudTextField @bind-Value="_adminEditLastName"  Label="Nachname" Variant="Variant.Outlined" Style="flex:1;" />
+            </div>
+            <div>
+                <MudTextField T="string" Label="E-Mail" @bind-Value="_adminEditEmail"
+                              Variant="Variant.Outlined" InputType="InputType.Email"
+                              Immediate="true" DebounceInterval="450"
+                              OnDebounceIntervalElapsed="OnAdminEmailDebounceAsync"
+                              Adornment="@(_adminEmailChecked ? Adornment.End : Adornment.None)"
+                              AdornmentIcon="@(_adminEmailValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                              AdornmentColor="@(_adminEmailValid ? Color.Success : Color.Error)" />
+                @if (_adminEmailChecking)
+                {
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="width:14px;height:14px;" />
+                        <MudText Typo="Typo.caption" Class="bt-text-dim">Pr&#252;fe E-Mail...</MudText>
+                    </div>
+                }
+                else if (_adminEmailChecked && !_adminEmailValid && !string.IsNullOrWhiteSpace(_adminEmailHint))
+                {
+                    <MudText Typo="Typo.caption" Style="color:#EF5350;margin-top:4px;">@_adminEmailHint</MudText>
+                }
+            </div>
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid #303030;display:flex;gap:8px;">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true"
+                       Disabled="_saving || !_adminEmailValid"
+                       OnClick="SaveAdminEditUserAsync">@(_saving ? "Speichern..." : "Speichern")</MudButton>
+            <MudButton Variant="Variant.Outlined" OnClick="CancelAdminEditUser">Abbrechen</MudButton>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly System.Globalization.CultureInfo _de =
+        System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+
+    private bool _loading;
+    private bool _saving;
+
+    private List<Account>  _accounts   = new();
+    private List<Category> _categories = new();
+    private bool _categorySortAsc = true;
+    private string _activeSection = "account";
+
+    // Mein Konto
+    private string _currentEmail    = "";
+    private string _newEmail        = "";
+    private bool   _showEmailForm;
+    private bool   _emailChecked;
+    private bool   _emailValid;
+    private bool   _emailChecking;
+    private bool   _emailNotTrusted;
+    private string _emailHint       = "";
+    private string _currentFirstName = "";
+    private string _currentLastName  = "";
+    private bool   _showNameForm;
+    private string _editFirstName   = "";
+    private string _editLastName    = "";
+    private string _currentPassword = "";
+    private string _newPassword     = "";
+    private string _confirmPassword = "";
+    private int    _currentUserId;
+    private bool   _isAdmin;
+
+    // Admin edit user
+    private User?  _adminEditUser;
+    private string _adminEditFirstName = "";
+    private string _adminEditLastName  = "";
+    private string _adminEditEmail     = "";
+    private bool   _adminEmailChecked;
+    private bool   _adminEmailValid;
+    private bool   _adminEmailChecking;
+    private string _adminEmailHint     = "";
+
+    // Admin
+    private List<TrustedEmail> _trustedEmails = new();
+    private List<User>         _adminUsers    = new();
+    private string             _newTrustedEmail = "";
+
+    // Preferences
+    private UserPreferences _prefs = new();
+    private string _budgetLimitStr = "";
+
+    private IEnumerable<Category> SortedCategories =>
+        _categorySortAsc
+            ? _categories.OrderBy(c => c.Name)
+            : _categories.OrderByDescending(c => c.Name);
+
+    private List<Category> IncomeCategories  => SortedCategories.Where(c => c.Type == CategoryType.Income).ToList();
+    private List<Category> ExpenseCategories => SortedCategories.Where(c => c.Type == CategoryType.Expense).ToList();
+    private List<Category> BothCategories    => SortedCategories.Where(c => c.Type == CategoryType.Both).ToList();
+
+    private void ToggleCategorySort() => _categorySortAsc = !_categorySortAsc;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _currentEmail = user.Identity?.Name
+            ?? user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value
+            ?? "";
+        var idStr = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(idStr, out var uid)) _currentUserId = uid;
+        _isAdmin = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "Admin";
+
+        // Load name from DB
+        if (_currentUserId > 0)
+        {
+            await using var dbCtx = await DbFactory.CreateDbContextAsync();
+            var dbUser = await dbCtx.Users.FindAsync(_currentUserId);
+            if (dbUser != null)
+            {
+                _currentFirstName = dbUser.FirstName ?? "";
+                _currentLastName  = dbUser.LastName  ?? "";
+                _currentEmail     = dbUser.Username  ?? _currentEmail;
+            }
+            GroupNotifSvc.RegisterProfileUpdate(_currentUserId, OnOwnProfileUpdatedAsync);
+        }
+
+        if (_currentUserId > 0)
+            await PrefsService.LoadAsync(_currentUserId);
+
+        _prefs = PrefsService.Current;
+        _budgetLimitStr = _prefs.MonthlyBudgetLimit > 0
+            ? _prefs.MonthlyBudgetLimit.ToString("F2", _de)
+            : "";
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _accounts   = await db.Accounts.Where(a => a.IsActive).OrderBy(a => a.Name).ToListAsync();
+        _categories = await db.Categories.Where(c => c.IsActive).OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
+        _loading = false;
+    }
+
+    // ── Admin ──────────────────────────────────────────────────────────────
+
+    private async Task LoadAdminDataAsync()
+    {
+        _trustedEmails = await UserService.GetTrustedEmailsAsync();
+        _adminUsers    = await UserService.GetAllUsersAdminAsync();
+    }
+
+    private async Task AddTrustedEmailAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newTrustedEmail)) return;
+        _saving = true;
+        var ok = await UserService.AddTrustedEmailAsync(_newTrustedEmail, _currentUserId);
+        _saving = false;
+        if (ok) { _newTrustedEmail = ""; Snackbar.Add("E-Mail freigegeben.", Severity.Success); }
+        else Snackbar.Add("Diese E-Mail ist bereits in der Liste.", Severity.Warning);
+        await LoadAdminDataAsync();
+    }
+
+    private async Task RemoveTrustedEmailAsync(int id)
+    {
+        var ok = await UserService.RemoveTrustedEmailAsync(id);
+        if (ok) Snackbar.Add("Freigabe entfernt.", Severity.Success);
+        await LoadAdminDataAsync();
+    }
+
+    private async Task ToggleUserActiveAsync(User u, bool active)
+    {
+        var action = active ? "aktivieren" : "deaktivieren";
+        var result = await DialogService.ShowMessageBox(
+            $"Benutzer {action}?",
+            $"{u.DisplayName ?? u.Username} ({u.Username}) wirklich {action}?",
+            yesText: active ? "Aktivieren" : "Deaktivieren", cancelText: "Abbrechen");
+        if (result != true) return;
+        await UserService.SetUserActiveAsync(u.Id, active);
+        Snackbar.Add($"Benutzer {(active ? "aktiviert" : "deaktiviert")}.", Severity.Success);
+        await LoadAdminDataAsync();
+    }
+
+    private async Task DeleteUserPermanentlyAsync(User u)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Benutzer endgültig löschen?",
+            $"{u.DisplayName ?? u.Username} ({u.Username}) und alle zugehörigen Daten unwiderruflich löschen?",
+            yesText: "Löschen", cancelText: "Abbrechen");
+        if (result != true) return;
+        var ok = await UserService.DeleteUserPermanentlyAsync(u.Id, _currentUserId);
+        if (ok) Snackbar.Add("Benutzer gelöscht.", Severity.Success);
+        else Snackbar.Add("Löschen fehlgeschlagen.", Severity.Error);
+        await LoadAdminDataAsync();
+    }
+
+
+
+    private async Task ChangeEmailAsync()
+    {
+        if (!_emailValid || string.IsNullOrWhiteSpace(_newEmail)) return;
+        _saving = true;
+        var ok = await UserService.UpdateEmailAsync(_currentUserId, _newEmail);
+        _saving = false;
+        if (ok)
+        {
+            _currentEmail = _newEmail.Trim().ToLowerInvariant();
+            _showEmailForm = false;
+            ResetEmailForm();
+            Snackbar.Add("E-Mail geändert. Bitte erneut einloggen.", Severity.Success);
+            await Task.Delay(2000);
+            Nav.NavigateTo("/logout", forceLoad: true);
+        }
+        else
+        {
+            Snackbar.Add("E-Mail bereits vergeben.", Severity.Error);
+        }
+    }
+
+    private void OpenEmailForm()
+    {
+        ResetEmailForm();
+        _newEmail = _currentEmail;
+        _showEmailForm = true;
+    }
+
+    private void CancelEmailForm()
+    {
+        _showEmailForm = false;
+        ResetEmailForm();
+    }
+
+    private void ResetEmailForm()
+    {
+        _emailChecked = false;
+        _emailValid = false;
+        _emailChecking = false;
+        _emailNotTrusted = false;
+        _emailHint = "";
+    }
+
+    private async Task OnEmailDebounceAsync(string value)
+    {
+        _newEmail = value;
+        _emailChecked = false;
+        _emailValid = false;
+        _emailHint = "";
+        _emailNotTrusted = false;
+        if (string.IsNullOrWhiteSpace(value)) { StateHasChanged(); return; }
+        _emailChecking = true;
+        StateHasChanged();
+        var norm = value.Trim().ToLowerInvariant();
+        await using var db = await DbFactory.CreateDbContextAsync();
+        // Same as current → auto-valid (no change needed but still allow)
+        if (norm == _currentEmail) { _emailValid = true; _emailChecked = true; _emailChecking = false; StateHasChanged(); return; }
+        // Already taken by another user?
+        if (await db.Users.AnyAsync(u => u.Username == norm && u.Id != _currentUserId))
+        {
+            _emailHint = "Diese E-Mail-Adresse ist bereits vergeben."; _emailChecked = true; _emailChecking = false; StateHasChanged(); return;
+        }
+        // Is it in the trusted list?
+        if (!await db.TrustedEmails.AnyAsync(t => t.Email == norm))
+        {
+            _emailHint = "Diese E-Mail-Adresse ist nicht in der Zulassungsliste.";
+            _emailNotTrusted = true; _emailChecked = true; _emailChecking = false; StateHasChanged(); return;
+        }
+        _emailValid = true;
+        _emailChecked = true;
+        _emailChecking = false;
+        StateHasChanged();
+    }
+
+    private void OpenNameForm()
+    {
+        _editFirstName = _currentFirstName;
+        _editLastName  = _currentLastName;
+        _showNameForm  = true;
+    }
+
+    private async Task SaveNameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_editFirstName)) return;
+        _saving = true;
+        await UserService.UpdateNameAsync(_currentUserId, _editFirstName, _editLastName);
+        _currentFirstName = _editFirstName.Trim();
+        _currentLastName  = _editLastName.Trim();
+        _showNameForm = false;
+        _saving = false;
+        Snackbar.Add("Name gespeichert.", Severity.Success);
+        await GroupNotifSvc.NotifyUserProfileChangedAsync(_currentUserId);
+    }
+
+    // ── Admin user edit ──────────────────────────────────────────────────────
+
+    private void OpenAdminEditUser(User u)
+    {
+        _adminEditUser      = u;
+        _adminEditFirstName = u.FirstName ?? "";
+        _adminEditLastName  = u.LastName  ?? "";
+        _adminEditEmail     = u.Username  ?? "";
+        _adminEmailChecked  = true;
+        _adminEmailValid    = true;
+        _adminEmailHint     = "";
+        _adminEmailChecking = false;
+    }
+
+    private async Task OnAdminEmailDebounceAsync(string value)
+    {
+        _adminEditEmail    = value;
+        _adminEmailChecked = false;
+        _adminEmailValid   = false;
+        _adminEmailHint    = "";
+        if (string.IsNullOrWhiteSpace(value)) { StateHasChanged(); return; }
+        _adminEmailChecking = true;
+        StateHasChanged();
+        var norm = value.Trim().ToLowerInvariant();
+        await using var db = await DbFactory.CreateDbContextAsync();
+        if (norm == (_adminEditUser?.Username ?? "")) { _adminEmailValid = true; _adminEmailChecked = true; _adminEmailChecking = false; StateHasChanged(); return; }
+        if (await db.Users.AnyAsync(u => u.Username == norm && u.Id != _adminEditUser!.Id))
+        {
+            _adminEmailHint = "Diese E-Mail-Adresse ist bereits vergeben."; _adminEmailChecked = true; _adminEmailChecking = false; StateHasChanged(); return;
+        }
+        _adminEmailValid    = true;
+        _adminEmailChecked  = true;
+        _adminEmailChecking = false;
+        StateHasChanged();
+    }
+
+    private async Task SaveAdminEditUserAsync()
+    {
+        if (_adminEditUser == null) return;
+        _saving = true;
+        var nameChanged  = _adminEditFirstName.Trim() != (_adminEditUser.FirstName ?? "") ||
+                           _adminEditLastName.Trim()  != (_adminEditUser.LastName  ?? "");
+        var emailChanged = _adminEditEmail.Trim().ToLowerInvariant() != (_adminEditUser.Username ?? "");
+
+        if (nameChanged)
+            await UserService.UpdateNameAsync(_adminEditUser.Id, _adminEditFirstName, _adminEditLastName);
+
+        if (emailChanged)
+        {
+            var norm = _adminEditEmail.Trim().ToLowerInvariant();
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var trusted = await db.TrustedEmails.AnyAsync(t => t.Email == norm);
+            if (!trusted)
+            {
+                _saving = false;
+                var add = await DialogService.ShowMessageBox(
+                    "E-Mail nicht in Zulassungsliste",
+                    $"'{norm}' ist nicht in den zugelassenen E-Mails. Soll sie automatisch hinzugefügt werden?",
+                    yesText: "Hinzufügen", cancelText: "Abbrechen");
+                if (add != true)
+                {
+                    // Revert
+                    _adminEditEmail = _adminEditUser.Username ?? "";
+                    Snackbar.Add("E-Mail-Änderung rückgängig gemacht.", Severity.Info);
+                    _adminEditUser = null;
+                    await LoadAdminDataAsync();
+                    return;
+                }
+                await UserService.AddTrustedEmailAsync(norm, _currentUserId);
+            }
+            _saving = true;
+            await UserService.UpdateEmailAdminAsync(_adminEditUser.Id, norm);
+        }
+
+        _saving = false;
+        var editedUserId = _adminEditUser.Id;
+        _adminEditUser = null;
+        if (nameChanged || emailChanged) await GroupNotifSvc.NotifyUserProfileChangedAsync(editedUserId);
+        if (emailChanged) await GroupNotifSvc.NotifyUserAsync(editedUserId);
+        Snackbar.Add("Benutzer aktualisiert.", Severity.Success);
+        await LoadAdminDataAsync();
+    }
+
+    private void CancelAdminEditUser() => _adminEditUser = null;
+
+    private async Task ChangePasswordAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_currentPassword) || string.IsNullOrWhiteSpace(_newPassword)) return;
+        if (_newPassword != _confirmPassword)
+        {
+            Snackbar.Add("Passwörter stimmen nicht überein.", Severity.Error);
+            return;
+        }
+        _saving = true;
+        var ok = await UserService.UpdatePasswordAsync(_currentUserId, _currentPassword, _newPassword);
+        _saving = false;
+        if (ok)
+        {
+            _currentPassword = _newPassword = _confirmPassword = "";
+            Snackbar.Add("Passwort erfolgreich geändert.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Aktuelles Passwort falsch.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAccountAsync()
+    {
+        var dlg = await DialogService.ShowMessageBox(
+            "Account deaktivieren?",
+            "Dein Account wird dauerhaft deaktiviert. Du wirst abgemeldet.",
+            yesText: "Deaktivieren", cancelText: "Abbrechen");
+        if (dlg != true) return;
+        _saving = true;
+        await UserService.SetUserActiveAsync(_currentUserId, false);
+        Nav.NavigateTo("/logout", forceLoad: true);
+    }
+
+    // ── Präferenzen ─────────────────────────────────────────────────────────
+
+    private async Task SavePrefsAsync()
+    {
+        _saving = true;
+        await PrefsService.SaveAsync();
+        _saving = false;
+        Snackbar.Add("Einstellungen gespeichert.", Severity.Success);
+    }
+
+    private void AutoSaveToggle(Action setter)
+    {
+        setter();
+        _ = PrefsService.SaveAsync();
+    }
+
+    private async Task SaveBudgetAsync()
+    {
+        if (_prefs.EnableBudgetWarnings && !string.IsNullOrWhiteSpace(_budgetLimitStr))
+        {
+            var cleaned = _budgetLimitStr.Replace(",", ".").Trim();
+            if (decimal.TryParse(cleaned,
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var limit))
+            {
+                _prefs.MonthlyBudgetLimit = limit;
+            }
+            else
+            {
+                Snackbar.Add("Bitte einen gültigen Betrag eingeben.", Severity.Warning);
+                return;
+            }
+        }
+        _saving = true;
+        await PrefsService.SaveAsync();
+        _saving = false;
+        Snackbar.Add("Budget-Einstellungen gespeichert.", Severity.Success);
+    }
+
+    // ── Konten ──────────────────────────────────────────────────────────────
+
+    private async Task SetDefaultAccountAsync(Account a)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        bool newDefault = !a.IsDefault;
+        var all = await db.Accounts.Where(acc => acc.IsActive).ToListAsync();
+        foreach (var acc in all) acc.IsDefault = (acc.Id == a.Id) && newDefault;
+        await db.SaveChangesAsync();
+        await LoadAsync();
+    }
+
+    private async Task AddAccountAsync()
+    {
+        var dlg = await DialogService.ShowAsync<AccountDialog>("Konto hinzufügen",
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task EditAccountAsync(Account a)
+    {
+        var parameters = new DialogParameters { ["ExistingAccount"] = a };
+        var dlg = await DialogService.ShowAsync<AccountDialog>("Konto bearbeiten", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task DeleteAccountAsync(Account a)
+    {
+        var dlg = await DialogService.ShowMessageBox("Konto deaktivieren?",
+            $"Konto \"{a.Name}\" wirklich deaktivieren?",
+            yesText: "Deaktivieren", cancelText: "Abbrechen");
+        if (dlg == true)
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var entity = await db.Accounts.FindAsync(a.Id);
+            if (entity != null) { entity.IsActive = false; await db.SaveChangesAsync(); }
+            await LoadAsync();
+        }
+    }
+
+    // ── Kategorien ──────────────────────────────────────────────────────────
+
+    private async Task AddCategoryAsync()
+    {
+        var dlg = await DialogService.ShowAsync<CategoryDialog>("Kategorie hinzufügen",
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task EditCategoryAsync(Category c)
+    {
+        var parameters = new DialogParameters { ["ExistingCategory"] = c };
+        var dlg = await DialogService.ShowAsync<CategoryDialog>("Kategorie bearbeiten", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task DeleteCategoryAsync(Category c)
+    {
+        var dlg = await DialogService.ShowMessageBox("Kategorie deaktivieren?",
+            $"Kategorie \"{c.Name}\" wirklich deaktivieren?",
+            yesText: "Deaktivieren", cancelText: "Abbrechen");
+        if (dlg == true)
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var entity = await db.Categories.FindAsync(c.Id);
+            if (entity != null) { entity.IsActive = false; await db.SaveChangesAsync(); }
+            await LoadAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_currentUserId > 0) GroupNotifSvc.UnregisterProfileUpdate(_currentUserId);
+    }
+
+    private async Task OnOwnProfileUpdatedAsync()
+    {
+        if (_currentUserId <= 0) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var u = await db.Users.FindAsync(_currentUserId);
+        if (u == null) return;
+        _currentFirstName = u.FirstName ?? "";
+        _currentLastName  = u.LastName  ?? "";
+        _currentEmail     = u.Username  ?? "";
+        await InvokeAsync(() =>
+        {
+            Snackbar.Add("Dein Profil wurde vom Administrator aktualisiert.", Severity.Info);
+            StateHasChanged();
+        });
+    }
+}

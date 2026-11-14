@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget Tracker</title>
+    <base href="/" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="_content/Blazor-ApexCharts/css/apexcharts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="pages.css" />
+    <link rel="stylesheet" href="shell.css" />
+    <script>
+        (function () {
+            var theme = 'light';
+            try { theme = localStorage.getItem('bt-theme') || 'light'; } catch (e) { }
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <HeadOutlet />
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        document.addEventListener('focusin', function (e) {
+            var im = e.target.getAttribute && e.target.getAttribute('inputmode');
+            if (e.target.tagName === 'INPUT' && (im === 'decimal' || im === 'numeric')) {
+                e.target.select();
+            }
+        });
+    </script>
+</body>
+</html>

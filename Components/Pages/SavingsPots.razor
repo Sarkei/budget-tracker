@@ -1,0 +1,172 @@
+@page "/savings"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject IDialogService DialogService
+
+<PageTitle>Spartöpfe – Budget Tracker</PageTitle>
+
+<PageToolbar Title="Spartöpfe">
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick="AddPotAsync">Hinzufügen</MudButton>
+</PageToolbar>
+
+@if (_loading)
+{
+    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mb-4" />
+}
+
+@if (!_pots.Any() && !_loading)
+{
+    <MudPaper Class="bt-empty-state">
+        <MudIcon Icon="@Icons.Material.Filled.Savings" Class="bt-empty-icon" />
+        <MudText Typo="Typo.h6" Class="bt-text-muted" Style="margin-top:16px;">Noch keine Spartöpfe</MudText>
+        <MudText Typo="Typo.body2" Class="bt-text-muted" Style="margin-bottom:24px;">
+            Erstelle virtuelle Spartöpfe für deine Sparziele – z.B. Urlaub, Auto oder Notfallreserve.
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="AddPotAsync">Ersten Spartopf erstellen</MudButton>
+    </MudPaper>
+}
+else
+{
+    <!-- Summary row -->
+    <MudGrid Spacing="3" Class="mb-4">
+        <MudItem xs="12" sm="4">
+            <div class="bt-kpi-mini bt-kpi-mini--brand">
+                <div class="bt-kpi-label">Gesamt gespart</div>
+                <div class="bt-kpi-value bt-kpi-accent-brand" style="font-size:1.25rem;">@_totalSaved.ToString("C2", _de)</div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <div class="bt-kpi-mini">
+                <div class="bt-kpi-label">Gesamt Ziel</div>
+                <div class="bt-kpi-value bt-text-muted" style="font-size:1.25rem;">@_totalTarget.ToString("C2", _de)</div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <div class="bt-kpi-mini bt-kpi-mini--success">
+                <div class="bt-kpi-label">Ø Fortschritt</div>
+                <div class="bt-kpi-value bt-kpi-accent-success" style="font-size:1.25rem;">@_avgProgress.ToString("F0")%</div>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Pot cards -->
+    <MudGrid Spacing="3">
+        @foreach (var pot in _pots)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <div class="bt-pot-card" style="@($"border-top:3px solid {pot.ColorHex};")">
+                    <div class="bt-flex-start-gap" style="margin-bottom:12px;">
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="bt-text-foreground" Style="font-weight:600;">@pot.Name</MudText>
+                            @if (!string.IsNullOrEmpty(pot.Description))
+                            {
+                                <div class="bt-kpi-label">@pot.Description</div>
+                            }
+                        </div>
+                        <div style="display:flex; gap:2px;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success"
+                                           OnClick="() => TopUpPotAsync(pot)" Title="Einzahlen" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Secondary"
+                                           OnClick="() => EditPotAsync(pot)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeletePotAsync(pot)" />
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div style="margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <MudText Typo="Typo.body2" Style="@($"color:{pot.ColorHex}; font-weight:700;")">
+                                @pot.CurrentAmount.ToString("C2", _de)
+                            </MudText>
+                            <div class="bt-kpi-label">
+                                Ziel: @pot.TargetAmount.ToString("C2", _de)
+                            </div>
+                        </div>
+                        <MudProgressLinear Value="@((double)pot.ProgressPercent)" Color="Color.Inherit"
+                                           Style="@($"height:8px; border-radius:4px; --mud-palette-inherit: {pot.ColorHex};")" />
+                        <MudText Typo="Typo.caption" Class="bt-text-muted" Style="margin-top:4px;">
+                            @pot.ProgressPercent.ToString("F0")% erreicht ·
+                            @if (pot.CurrentAmount < pot.TargetAmount)
+                            {
+                                <text>noch @((pot.TargetAmount - pot.CurrentAmount).ToString("C2", _de)) bis zum Ziel</text>
+                            }
+                            else
+                            {
+                                <span class="bt-text-success">Ziel erreicht!</span>
+                            }
+                        </MudText>
+                    </div>
+                </div>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private static readonly System.Globalization.CultureInfo _de = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+
+    private bool _loading = true;
+    private List<SavingsPot> _pots = new();
+    private decimal _totalSaved, _totalTarget;
+    private decimal _avgProgress;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _pots = await db.SavingsPots.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
+        _totalSaved = _pots.Sum(p => p.CurrentAmount);
+        _totalTarget = _pots.Sum(p => p.TargetAmount);
+        _avgProgress = _pots.Any() ? _pots.Average(p => p.ProgressPercent) : 0;
+        _loading = false;
+    }
+
+    private async Task AddPotAsync()
+    {
+        var dlg = await DialogService.ShowAsync<SavingsPotDialog>("Spartopf erstellen",
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task EditPotAsync(SavingsPot pot)
+    {
+        var parameters = new DialogParameters { ["Pot"] = pot };
+        var dlg = await DialogService.ShowAsync<SavingsPotDialog>("Spartopf bearbeiten", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task TopUpPotAsync(SavingsPot pot)
+    {
+        var result = await DialogService.ShowMessageBox(
+            $"Einzahlen – {pot.Name}",
+            (MarkupString)$"Aktueller Stand: {pot.CurrentAmount.ToString("C2", _de)}<br/>Wie viel möchtest du einzahlen?",
+            yesText: "OK", cancelText: "Abbrechen");
+
+        // Simple dialog — use an amount dialog instead of message box for better UX
+        // For now open the edit dialog pre-filled
+        var parameters = new DialogParameters { ["Pot"] = pot };
+        var dlg = await DialogService.ShowAsync<SavingsPotDialog>("Einzahlen / bearbeiten", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        if (!(await dlg.Result)!.Canceled) await LoadAsync();
+    }
+
+    private async Task DeletePotAsync(SavingsPot pot)
+    {
+        var result = await DialogService.ShowMessageBox("Spartopf löschen?",
+            $"Spartopf \"{pot.Name}\" wirklich löschen?", yesText: "Löschen", cancelText: "Abbrechen");
+        if (result == true)
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var entity = await db.SavingsPots.FindAsync(pot.Id);
+            if (entity != null) { entity.IsActive = false; await db.SaveChangesAsync(); }
+            await LoadAsync();
+        }
+    }
+}
