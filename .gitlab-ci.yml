@@ -1,0 +1,29 @@
+image: mcr.microsoft.com/dotnet/sdk:8.0
+
+variables:
+  NUGET_PACKAGES_DIRECTORY: '.nuget'
+  PROJECT_FILE: 'BudgetTracker.csproj'
+
+cache:
+  key: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
+  paths:
+    - obj/project.assets.json
+    - obj/*.csproj.nuget.*
+    - $NUGET_PACKAGES_DIRECTORY
+  policy: pull-push
+
+before_script:
+  - dotnet restore $PROJECT_FILE --packages $NUGET_PACKAGES_DIRECTORY
+
+build:
+  stage: build
+  script:
+    - dotnet build $PROJECT_FILE --no-restore -c Release
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deployment via Docker Compose on self-hosted runner"
+  environment: production
+  only:
+    - master
