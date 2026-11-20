@@ -54,21 +54,21 @@
             else
             {
                 <dl class="stat-row">
-                    <div class="stat">
+                    <div class="stat stat--button" @onclick="@(() => DetailOeffnen("saldo"))">
                         <dt class="stat__value @(_currentBalance < 0 ? "stat__value--negative" : "")">
                             @_currentBalance.ToString("C2", _de)
                         </dt>
                         <dd class="stat__label">Saldo</dd>
                     </div>
-                    <div class="stat">
+                    <div class="stat stat--button" @onclick="@(() => DetailOeffnen("buchungen"))">
                         <dt class="stat__value">@_transactionCount</dt>
                         <dd class="stat__label">Buchungen</dd>
                     </div>
-                    <div class="stat">
+                    <div class="stat stat--button" @onclick="@(() => DetailOeffnen("konten"))">
                         <dt class="stat__value">@_accountCount</dt>
                         <dd class="stat__label">Konten</dd>
                     </div>
-                    <div class="stat">
+                    <div class="stat stat--button" @onclick="@(() => DetailOeffnen("kategorien"))">
                         <dt class="stat__value">@_categoryCount</dt>
                         <dd class="stat__label">Kategorien</dd>
                     </div>
@@ -86,6 +86,13 @@
         </section>
     </NotAuthorized>
 </AuthorizeView>
+
+<StatDetail Offen="_detailOffen"
+            Titel="_detailTitel"
+            Hinweis="_detailHinweis"
+            Einheit="_detailEinheit"
+            Punkte="_detailPunkte"
+            OnClose="DetailSchliessen" />
 
 <section class="app-section">
     <div class="app-container">
@@ -214,6 +221,13 @@
     private List<ScheduledPayment> _upcomingPayments = new();
     private UserPreferences _prefs = new();
 
+    // Kennzahl-Detail
+    private bool _detailOffen;
+    private string _detailTitel = "";
+    private string? _detailHinweis;
+    private string? _detailEinheit;
+    private List<StatDetail.Punkt> _detailPunkte = new();
+
     private record AreaItem(string Title, string Href, string Icon, string Text);
 
     private List<AreaItem> Areas()
@@ -246,6 +260,79 @@
         items.Add(new("Einstellungen", "/settings", "settings",
             "Konten, Kategorien und Darstellung verwalten."));
         return items;
+    }
+
+    /// <summary>Oeffnet die Detailansicht fuer eine der vier Kennzahlen.</summary>
+    private async Task DetailOeffnen(string schluessel)
+    {
+        _detailPunkte = new();
+        _detailEinheit = null;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        int? accountId = AppState.SelectedAccountId;
+        var txQuery = db.Transactions.AsQueryable();
+        if (accountId.HasValue) txQuery = txQuery.Where(t => t.AccountId == accountId.Value);
+
+        switch (schluessel)
+        {
+            case "saldo":
+                _detailTitel = "Saldo im Verlauf";
+                _detailHinweis = "Einnahmen minus Ausgaben je Monat, aufsummiert.";
+                _detailEinheit = "€";
+                var monate = await txQuery
+                    .Select(t => new { t.Date, t.Type, t.Amount })
+                    .ToListAsync();
+                _detailPunkte = monate
+                    .GroupBy(m => new DateTime(m.Date.Year, m.Date.Month, 1))
+                    .OrderBy(g => g.Key)
+                    .Select(g => new StatDetail.Punkt(
+                        g.Key.ToString("MMM yyyy", _de),
+                        g.Sum(x => x.Type == TransactionType.Income ? x.Amount : -x.Amount)))
+                    .ToList();
+                break;
+
+            case "buchungen":
+                _detailTitel = "Buchungen";
+                _detailHinweis = "Die letzten Buchungen, neueste zuerst.";
+                _detailPunkte = await txQuery
+                    .OrderByDescending(t => t.Date)
+                    .Take(60)
+                    .Select(t => new StatDetail.Punkt(
+                        t.Date.ToString("dd.MM.yyyy", _de) + " · " + (t.Note ?? t.Merchant ?? "Buchung"),
+                        t.Type == TransactionType.Income ? t.Amount : -t.Amount))
+                    .ToListAsync();
+                break;
+
+            case "konten":
+                _detailTitel = "Konten";
+                _detailHinweis = "Startsaldo je Konto.";
+                _detailEinheit = "€";
+                _detailPunkte = (await db.Accounts.Where(a => a.IsActive).ToListAsync())
+                    .Select(a => new StatDetail.Punkt(a.Name, a.InitialBalance))
+                    .ToList();
+                break;
+
+            case "kategorien":
+                _detailTitel = "Kategorien";
+                _detailHinweis = "Ausgaben je Kategorie.";
+                _detailEinheit = "€";
+                _detailPunkte = await txQuery
+                    .Where(t => t.Type == TransactionType.Expense && t.Category != null)
+                    .GroupBy(t => t.Category!.Name)
+                    .Select(g => new StatDetail.Punkt(g.Key, g.Sum(x => x.Amount)))
+                    .ToListAsync();
+                _detailPunkte = _detailPunkte.OrderByDescending(p => p.Wert).ToList();
+                break;
+        }
+
+        _detailOffen = true;
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    private void DetailSchliessen()
+    {
+        _detailOffen = false;
     }
 
     protected override async Task OnInitializedAsync()

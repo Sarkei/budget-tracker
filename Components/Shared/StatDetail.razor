@@ -1,0 +1,106 @@
+@* Detailansicht für Kennzahlen: Klick auf eine Kachel öffnet Verlauf und Aufschlüsselung. *@
+@using System.Globalization
+
+@if (Offen)
+{
+    <div class="stat-detail-overlay" @onclick="Schliessen">
+        <div class="stat-detail" @onclick:stopPropagation="true">
+            <div class="stat-detail__head">
+                <div>
+                    <h2 class="stat-detail__title">@Titel</h2>
+                    @if (!string.IsNullOrWhiteSpace(Hinweis))
+                    {
+                        <p class="stat-detail__hint">@Hinweis</p>
+                    }
+                </div>
+                <button type="button" class="stat-detail__close" @onclick="Schliessen" aria-label="Schließen">×</button>
+            </div>
+
+            <div class="stat-detail__body">
+                @if (Punkte.Count == 0)
+                {
+                    <p class="stat-detail__empty">Noch keine Werte vorhanden.</p>
+                }
+                else
+                {
+                    <div class="stat-detail__stats">
+                        <div class="stat-detail__stat">
+                            <span class="stat-detail__stat-label">Schnitt</span>
+                            <span class="stat-detail__stat-value">@Formatiert(Schnitt)</span>
+                        </div>
+                        <div class="stat-detail__stat">
+                            <span class="stat-detail__stat-label">Niedrigster</span>
+                            <span class="stat-detail__stat-value">@Formatiert(Min)</span>
+                        </div>
+                        <div class="stat-detail__stat">
+                            <span class="stat-detail__stat-label">Höchster</span>
+                            <span class="stat-detail__stat-value">@Formatiert(Max)</span>
+                        </div>
+                        <div class="stat-detail__stat">
+                            <span class="stat-detail__stat-label">Anzahl</span>
+                            <span class="stat-detail__stat-value">@Punkte.Count</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-detail__chart">
+                        <span class="stat-detail__chart-title">Verlauf</span>
+                        <div class="stat-detail__bars">
+                            @foreach (var p in Punkte.TakeLast(30))
+                            {
+                                var hoehe = MaxWert > 0 ? Math.Max(2, (double)(p.Wert / MaxWert) * 100) : 2;
+                                <div class="stat-detail__bar" style="height:@(hoehe.ToString("0.#", CultureInfo.InvariantCulture))%"
+                                     title="@($"{p.Label}: {Formatiert(p.Wert)}")"></div>
+                            }
+                        </div>
+                    </div>
+
+                    <table class="stat-detail__table">
+                        <thead>
+                            <tr>
+                                <th>Eintrag</th>
+                                <th class="text-right">Wert</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Enumerable.Reverse(Punkte))
+                            {
+                                <tr>
+                                    <td>@p.Label</td>
+                                    <td class="text-right">@Formatiert(p.Wert)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly CultureInfo _de = CultureInfo.GetCultureInfo("de-DE");
+
+    public record Punkt(string Label, decimal Wert);
+
+    [Parameter] public bool Offen { get; set; }
+    [Parameter] public string Titel { get; set; } = "";
+    [Parameter] public string? Hinweis { get; set; }
+    [Parameter] public string? Einheit { get; set; }
+    [Parameter] public List<Punkt> Punkte { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private decimal Schnitt => Punkte.Count == 0 ? 0 : Punkte.Average(p => p.Wert);
+    private decimal Min => Punkte.Count == 0 ? 0 : Punkte.Min(p => p.Wert);
+    private decimal Max => Punkte.Count == 0 ? 0 : Punkte.Max(p => p.Wert);
+    private decimal MaxWert => Max;
+
+    private string Formatiert(decimal v)
+    {
+        var text = Math.Abs(v) >= 100
+            ? v.ToString("N0", _de)
+            : v.ToString("N1", _de);
+        return string.IsNullOrWhiteSpace(Einheit) ? text : $"{text} {Einheit}";
+    }
+
+    private async Task Schliessen() => await OnClose.InvokeAsync();
+}
