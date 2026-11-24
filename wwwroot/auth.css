@@ -44,21 +44,7 @@ html.bt-auth body {
     margin-bottom: 4px;
 }
 
-.bt-auth-logo::before {
-    content: 'B';
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: var(--radius-pill);
-    background: var(--accent-soft);
-    color: var(--accent-ink);
-    border: 1px solid var(--line);
-    font-family: var(--font-serif);
-    font-size: 15px;
-    font-weight: 400;
-    letter-spacing: 0;
-}
+/* Marke steckt im Markup (.app-brand__mark), kein Pseudo-Element mehr. */
 
 .bt-auth-title {
     color: var(--ink);
@@ -275,4 +261,27 @@ html.bt-auth body {
         flex-direction: column;
         gap: 0;
     }
+}
+
+/* Marke auf den Anmeldeseiten: Name + Funktion, wie in der Kopfzeile */
+.bt-auth-logo__text {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.2;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.bt-auth-logo__sub {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
 }
