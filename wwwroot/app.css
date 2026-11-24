@@ -1254,3 +1254,24 @@ button,
     width: 20px;
     height: 20px;
 }
+
+/* ---------------------------------------- Touch-Ziele (mobil, alle Seiten) */
+/*
+ * app.css wird auf jeder Seite geladen - die Regel steht hier, damit sie auch
+ * dann greift, wenn pages.css (nur Innenseiten) alt aus dem Cache kommt.
+ */
+@media (max-width: 959px) {
+  .mud-icon-button { min-width: 40px; min-height: 40px; }
+  .mobile-acc-btn { min-height: 40px; padding-block: 9px; }
+  .bt-pill,
+  .report-mode-btn,
+  .grp-report-mode-btn,
+  .app-nav-item {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mud-button-root:not(.mud-icon-button) { min-height: 40px; }
+  .bt-auth-link a { display: inline-block; min-height: 40px; line-height: 40px; padding-inline: 4px; }
+}
