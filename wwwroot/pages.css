@@ -1835,3 +1835,34 @@ html, body, #app, .mud-layout {
     gap: 6px;
     margin-bottom: 6px;
 }
+
+/* "Alle ansehen"-Verweise im Design-System: 31px war zu flach. */
+@media (max-width: 959px) {
+  .app-nav-item {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* ---------------------------------------- Touch-Ziele (mobil, alle Seiten) */
+
+/*
+ * Gemessen bei 390px: MudBlazor-Icon-Buttons waren 26px hoch, die
+ * Kontofilter-Chips 27px, Zeitraum-Pills und Ansichts-Umschalter 31px.
+ * Mit dem Daumen trifft man die nicht zuverlaessig.
+ */
+@media (max-width: 959px) {
+  .mud-icon-button { min-width: 40px; min-height: 40px; }
+  .mobile-acc-btn { min-height: 40px; padding-block: 9px; }
+  .bt-pill,
+  .report-mode-btn,
+  .grp-report-mode-btn,
+  .app-nav-item {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mud-button-root:not(.mud-icon-button) { min-height: 40px; }
+}
