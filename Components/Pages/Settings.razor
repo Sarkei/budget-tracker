@@ -229,7 +229,7 @@
                 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Wiederkehrende Buchungen</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Wiederkehrende Buchungen</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Regelmäßige Einnahmen und Ausgaben verwalten</MudText>
                     </div>
                     <MudSwitch Value="_prefs.ShowRecurring" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowRecurring = v))" Color="Color.Secondary" />
@@ -237,7 +237,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Spartöpfe</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Spartöpfe</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Spar-Ziele anlegen und verfolgen</MudText>
                     </div>
                     <MudSwitch Value="_prefs.ShowSavingsPots" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowSavingsPots = v))" Color="Color.Secondary" />
@@ -245,7 +245,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Geplante Zahlungen</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Geplante Zahlungen</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Zukünftig fällige Zahlungen vorausplanen</MudText>
                     </div>
                     <MudSwitch Value="_prefs.ShowScheduledPayments" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowScheduledPayments = v))" Color="Color.Secondary" />
@@ -253,7 +253,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Gruppen &amp; Ausgaben teilen</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Gruppen &amp; Ausgaben teilen</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Gemeinsame Ausgaben mit anderen splitten</MudText>
                     </div>
                     <MudSwitch Value="_prefs.ShowGroups" ValueChanged="@((bool v) => AutoSaveToggle(() => _prefs.ShowGroups = v))" Color="Color.Secondary" />
@@ -276,7 +276,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Konto-Boxen im Dashboard</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Konto-Boxen im Dashboard</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Zeigt Mini-Karten pro Konto bei "Alle Konten"</MudText>
                     </div>
                     <MudSwitch @bind-Value="_prefs.ShowAccountMiniBoxes" Color="Color.Secondary" />
@@ -284,7 +284,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Kompaktansicht</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Kompaktansicht</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Kleinere Abstände und kompaktere Darstellung</MudText>
                     </div>
                     <MudSwitch @bind-Value="_prefs.CompactMode" Color="Color.Secondary" />
@@ -342,7 +342,7 @@
 
                 <div class="st-toggle-row">
                     <div class="st-toggle-text">
-                        <MudText Typo="Typo.body1" Style="color:#CFD8DC;font-weight:500;">Budget-Warnung aktivieren</MudText>
+                        <MudText Typo="Typo.body1" Style="color:#b8c4c0;font-weight:500;">Budget-Warnung aktivieren</MudText>
                         <MudText Typo="Typo.caption" Class="bt-text-muted">Warnt auf dem Dashboard wenn das Monatsbudget überschritten wird</MudText>
                     </div>
                     <MudSwitch @bind-Value="_prefs.EnableBudgetWarnings" Color="Color.Secondary" />
@@ -441,7 +441,7 @@
                     <div class="st-card-header-left">
                         <MudIcon Icon="@Icons.Material.Filled.Label" Class="bt-text-brand bt-icon-section" />
                         <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Alle Kategorien</MudText>
-                        <span style="font-size:12px;color:#A3A3A3;margin-left:4px;">(@_categories.Count)</span>
+                        <span style="font-size:12px;color:#a4aaa7;margin-left:4px;">(@_categories.Count)</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;">
                         <MudTooltip Text="@(_categorySortAsc ? "A → Z" : "Z → A")">
@@ -474,7 +474,7 @@
                             <div class="st-list-info">
                                 <span class="st-list-name">@cat.Name</span>
                             </div>
-                            <span class="st-type-badge" style="background:rgba(102,187,106,0.15);color:#66BB6A;margin-right:8px;">Einnahme</span>
+                            <span class="st-type-badge" style="background:rgba(102,187,106,0.15);color:#4fbf8b;margin-right:8px;">Einnahme</span>
                             <div class="st-list-actions">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                                Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
@@ -497,7 +497,7 @@
                             <div class="st-list-info">
                                 <span class="st-list-name">@cat.Name</span>
                             </div>
-                            <span class="st-type-badge" style="background:rgba(239,83,80,0.15);color:#EF5350;margin-right:8px;">Ausgabe</span>
+                            <span class="st-type-badge" style="background:rgba(239,83,80,0.15);color:#f08a7a;margin-right:8px;">Ausgabe</span>
                             <div class="st-list-actions">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                                Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
@@ -520,7 +520,7 @@
                             <div class="st-list-info">
                                 <span class="st-list-name">@cat.Name</span>
                             </div>
-                            <span class="st-type-badge" style="background:rgba(120,144,156,0.15);color:#A3A3A3;margin-right:8px;">Beides</span>
+                            <span class="st-type-badge" style="background:rgba(120,144,156,0.15);color:#a4aaa7;margin-right:8px;">Beides</span>
                             <div class="st-list-actions">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                                Color="Color.Secondary" OnClick="() => EditCategoryAsync(cat)" />
@@ -560,17 +560,17 @@
                     </div>
                     @if (_trustedEmails.Count == 0)
                     {
-                        <MudText Typo="Typo.body2" Style="color:#A3A3A3;font-style:italic;">Noch keine E-Mails hinterlegt.</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#a4aaa7;font-style:italic;">Noch keine E-Mails hinterlegt.</MudText>
                     }
                     else
                     {
                         @foreach (var te in _trustedEmails)
                         {
                             <div class="st-list-row">
-                                <MudIcon Icon="@Icons.Material.Filled.Email" Style="color:#14B8A6;font-size:18px;flex-shrink:0;" />
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Style="color:#4fbf8b;font-size:18px;flex-shrink:0;" />
                                 <div class="st-list-info">
                                     <span class="st-list-name">@te.Email</span>
-                                    <span style="font-size:11px;color:#A3A3A3;">Hinzugefügt: @te.AddedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                    <span style="font-size:11px;color:#a4aaa7;">Hinzugefügt: @te.AddedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
                                 </div>
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
                                                Color="Color.Error" OnClick="() => RemoveTrustedEmailAsync(te.Id)" />
@@ -591,20 +591,20 @@
                 <div class="st-card-body" style="padding:0;overflow-x:auto;">
                     @if (_adminUsers.Count == 0)
                     {
-                        <MudText Typo="Typo.body2" Style="color:#A3A3A3;font-style:italic;padding:16px;">Keine Benutzer gefunden.</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#a4aaa7;font-style:italic;padding:16px;">Keine Benutzer gefunden.</MudText>
                     }
                     else
                     {
                         <table style="width:100%;border-collapse:collapse;font-size:13px;">
                             <thead>
-                                <tr style="border-bottom:2px solid #303030;">
-                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Vorname</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Nachname</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">E-Mail</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Letzter Login</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Status</th>
-                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Bearbeiten</th>
-                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A3A3A3;white-space:nowrap;">Deaktivieren</th>
+                                <tr style="border-bottom:2px solid #1d2421;">
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Vorname</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Nachname</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">E-Mail</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Letzter Login</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Status</th>
+                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Bearbeiten</th>
+                                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a4aaa7;white-space:nowrap;">Deaktivieren</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -613,26 +613,26 @@
                                     <tr style="border-bottom:1px solid #222;@(u.IsActive ? "" : "opacity:0.55;")transition:background 0.1s;"
                                         @onmouseenter="() => {}"
                                         class="admin-user-row">
-                                        <td style="padding:11px 14px;color:#CFD8DC;font-weight:500;white-space:nowrap;">
+                                        <td style="padding:11px 14px;color:#b8c4c0;font-weight:500;white-space:nowrap;">
                                             @u.FirstName
                                             @if (u.Id == _currentUserId)
                                             {
-                                                <span style="font-size:10px;color:#A3A3A3;margin-left:5px;">(Du)</span>
+                                                <span style="font-size:10px;color:#a4aaa7;margin-left:5px;">(Du)</span>
                                             }
                                             @if (u.Role == UserRole.Admin)
                                             {
                                                 <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="color:#FFA726;font-size:13px;vertical-align:middle;margin-left:4px;" Title="Admin" />
                                             }
                                         </td>
-                                        <td style="padding:11px 14px;color:#CFD8DC;">@u.LastName</td>
-                                        <td style="padding:11px 14px;color:#A3A3A3;font-size:12px;">@u.Username</td>
+                                        <td style="padding:11px 14px;color:#b8c4c0;">@u.LastName</td>
+                                        <td style="padding:11px 14px;color:#a4aaa7;font-size:12px;">@u.Username</td>
                                         <td style="padding:11px 14px;color:#78909C;font-size:12px;white-space:nowrap;">
                                             @(u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "—")
                                         </td>
                                         <td style="padding:11px 14px;white-space:nowrap;">
                                             <span style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;
                                                          background:@(u.IsActive ? "rgba(102,187,106,0.15)" : "rgba(239,83,80,0.15)");
-                                                         color:@(u.IsActive ? "#66BB6A" : "#EF5350");">
+                                                         color:@(u.IsActive ? "#4fbf8b" : "#f08a7a");">
                                                 @(u.IsActive ? "Aktiv" : "Deaktiviert")
                                             </span>
                                         </td>
@@ -677,9 +677,9 @@
 @if (_adminEditUser != null)
 {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1300;" @onclick="CancelAdminEditUser"></div>
-    <div style="position:fixed;top:0;right:0;width:360px;max-width:100vw;height:100vh;background:#1e1e1e;border-left:1px solid #404040;z-index:1400;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.5);"
+    <div style="position:fixed;top:0;right:0;width:360px;max-width:100vw;height:100vh;background:#1e1e1e;border-left:1px solid #2b2f2d;z-index:1400;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.5);"
          @onclick:stopPropagation="true">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #303030;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #1d2421;">
             <MudText Typo="Typo.subtitle1" Class="bt-text-brand-muted" Style="font-weight:600;">Benutzer bearbeiten</MudText>
             <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="CancelAdminEditUser" Size="Size.Small" />
         </div>
@@ -705,11 +705,11 @@
                 }
                 else if (_adminEmailChecked && !_adminEmailValid && !string.IsNullOrWhiteSpace(_adminEmailHint))
                 {
-                    <MudText Typo="Typo.caption" Style="color:#EF5350;margin-top:4px;">@_adminEmailHint</MudText>
+                    <MudText Typo="Typo.caption" Style="color:#f08a7a;margin-top:4px;">@_adminEmailHint</MudText>
                 }
             </div>
         </div>
-        <div style="padding:16px 20px;border-top:1px solid #303030;display:flex;gap:8px;">
+        <div style="padding:16px 20px;border-top:1px solid #1d2421;display:flex;gap:8px;">
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true"
                        Disabled="_saving || !_adminEmailValid"
                        OnClick="SaveAdminEditUserAsync">@(_saving ? "Speichern..." : "Speichern")</MudButton>
