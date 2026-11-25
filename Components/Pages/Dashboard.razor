@@ -58,7 +58,15 @@
                         <dt class="stat__value @(_currentBalance < 0 ? "stat__value--negative" : "")">
                             @_currentBalance.ToString("C2", _de)
                         </dt>
-                        <dd class="stat__label">Saldo</dd>
+                        <dd class="stat__label">
+                            Saldo
+                            @if (_durchlaufKonten.Count > 0 && !AppState.SelectedAccountId.HasValue)
+                            {
+                                <span style="display:block; font-size:0.58rem; font-weight:500; opacity:0.7; margin-top:1px;">
+                                    ohne @string.Join(", ", _durchlaufKonten)
+                                </span>
+                            }
+                        </dd>
                     </div>
                     <div class="stat stat--button" @onclick="@(() => DetailOeffnen("buchungen"))">
                         <dt class="stat__value">@_transactionCount</dt>
@@ -211,6 +219,12 @@
 
     private bool _loading = true;
     private decimal _currentBalance;
+
+    /// <summary>
+    /// Konten, die nur durchlaufen (z. B. PayPal) und deshalb nicht in den
+    /// Kontostand gehören. Wird im Dashboard als Hinweis gezeigt.
+    /// </summary>
+    private List<string> _durchlaufKonten = new();
     private decimal _monthlyIncome;
     private decimal _monthlyExpenses;
     private int _transactionCount;
@@ -372,25 +386,45 @@
             .Select(t => new { t.Type, t.Amount })
             .ToListAsync();
 
-        var income = txSums.Where(s => s.Type == TransactionType.Income).Sum(s => s.Amount);
-        var expense = txSums.Where(s => s.Type == TransactionType.Expense).Sum(s => s.Amount);
-        _transactionCount = txSums.Count;
-
-        var initialBalance = accountId.HasValue
-            ? accounts.Where(a => a.Id == accountId.Value).Sum(a => a.InitialBalance)
-            : accounts.Sum(a => a.InitialBalance);
-        _currentBalance = initialBalance + income - expense;
-
         var now = DateTime.Today;
         var monthStart = new DateTime(now.Year, now.Month, 1);
         _monthName = now.ToString("MMMM", _de);
 
-        var monthTx = await txQuery
+        /*
+         * Echter Kontostand — hier steckte Tims Fehler.
+         *
+         * Bisher wurden alle Buchungen beider Konten summiert. Das Problem: Das
+         * PayPal-Konto ist ein reines Durchlaufkonto. 1.653,05 € gingen per
+         * Lastschrift dorthin, aber nur 435,30 € kamen als Gutschrift an — es
+         * fehlen 1.217,75 €. Dadurch zeigte PayPal −4.040,78 € an, obwohl dort
+         * nie Geld gehalten wird: PayPal bucht vom Girokonto ab und schickt es
+         * an den Händler.
+         *
+         * Ein Durchlaufkonto gehört nicht in die Vermögenssumme. `Kontostand`
+         * erkennt solche Konten und lässt sie weg — der echte Stand ist
+         * das Girokonto allein.
+         */
+        var alleDbBuchungen = await db.Transactions.ToListAsync();
+        var alleKonten = await db.Accounts.ToListAsync();
+        _currentBalance = Kontostand.Berechne(alleDbBuchungen, alleKonten, accountId);
+
+        /* Welche Konten sind Durchlauf? Für die Anzeige im Dashboard. */
+        _durchlaufKonten = alleKonten
+            .Where(k => k.IsActive && Kontostand.IstDurchlaufkonto(k.Id, alleDbBuchungen, alleKonten))
+            .Select(k => k.Name)
+            .ToList();
+
+        var gezahlt = alleDbBuchungen
+            .Where(t => BuchungsFilter.Zaehlt(t))
+            .Where(t => !accountId.HasValue || t.AccountId == accountId.Value)
+            .ToList();
+        _transactionCount = gezahlt.Count;
+
+        var monthTx = gezahlt
             .Where(t => t.Date >= monthStart && t.Date < monthStart.AddMonths(1))
-            .Select(t => new { t.Type, t.Amount })
-            .ToListAsync();
-        _monthlyIncome = monthTx.Where(s => s.Type == TransactionType.Income).Sum(s => s.Amount);
-        _monthlyExpenses = monthTx.Where(s => s.Type == TransactionType.Expense).Sum(s => s.Amount);
+            .ToList();
+        _monthlyIncome = monthTx.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
+        _monthlyExpenses = monthTx.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
 
         _categoryCount = await db.Categories.CountAsync();
 
