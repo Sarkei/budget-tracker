@@ -328,6 +328,19 @@
         _loading = false;
     }
 
+    /// <summary>
+    /// Buchungen nach Tagen gruppiert — Tims Vorgabe: Ein- und Ausgaben nach
+    /// Tagen zusammenfassen.
+    ///
+    /// Gruppiert wird in der Anzeige: Die Liste kommt bereits nach Datum
+    /// sortiert, so bleibt die Reihenfolge erhalten und der Tageskopf lässt
+    /// sich mit Tagessumme und -bilanz zeigen.
+    /// </summary>
+    private IEnumerable<IGrouping<DateTime, Transaction>> NachTagen()
+        => _transactions
+            .GroupBy(t => t.Date.Date)
+            .OrderByDescending(g => g.Key);
+
     private async Task ClearFilterAsync()
     {
         _filterMonth = DateTime.Today.Month;
