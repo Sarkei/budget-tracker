@@ -1,11 +1,12 @@
-/* Farbschema: hell als Standard, Wahl in localStorage, Start ohne Aufblitzen. */
+/* Farbschema: dunkel als Standard, Wahl in localStorage, Start ohne Aufblitzen. */
 (function () {
     window.btTheme = {
         get: function () {
             try {
-                return localStorage.getItem('bt-theme') || 'light';
+                /* Tims Vorgabe: dunkel ist der Standard. */
+                return localStorage.getItem('bt-theme') || 'dark';
             } catch (e) {
-                return 'light';
+                return 'dark';
             }
         },
         set: function (theme) {

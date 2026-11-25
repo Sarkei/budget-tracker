@@ -215,7 +215,11 @@
     private List<Account> _accounts = new();
     private bool _defaultSelected;
     private UserPreferences _prefs = new();
-    private bool _isDark;
+    /// <summary>
+    /// Dunkel ist der Standard (Tims Vorgabe). Der Startwert muss dazu passen,
+    /// sonst blitzt beim ersten Rendern kurz das helle Design auf.
+    /// </summary>
+    private bool _isDark = true;
 
     // Einladungen
     private bool _showNotifPanel;
