@@ -1,0 +1,305 @@
+@page "/abos"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject AppStateService AppState
+@inject KuendigungsService Kuendigung
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Abos – Budget Tracker</PageTitle>
+
+<PageToolbar Title="Abos &amp; Kündigungen">
+    <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+               StartIcon="@Icons.Material.Filled.Refresh" OnClick="LadenAsync">
+        Neu berechnen
+    </MudButton>
+</PageToolbar>
+
+@if (_laedt)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Secondary" />
+}
+else
+{
+    @* ---------- Übersicht ---------- *@
+    <MudGrid Spacing="3" Class="mb-4">
+        <MudItem xs="12" sm="4">
+            <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-left:3px solid #4fbf8b; border-radius:14px; padding:16px;">
+                <MudText Typo="Typo.caption" Class="bt-text-muted">Abos gesamt</MudText>
+                <MudText Typo="Typo.h5" Style="color:#4fbf8b; font-weight:700;">@_abos.Count</MudText>
+                <MudText Typo="Typo.caption" Class="bt-text-muted">@_abos.Count(a => a.Typ == TransactionType.Expense) Ausgaben, @_abos.Count(a => a.Typ == TransactionType.Income) Einnahmen</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-left:3px solid #f08a7a; border-radius:14px; padding:16px;">
+                <MudText Typo="Typo.caption" Class="bt-text-muted">Monatlich gebunden</MudText>
+                <MudText Typo="Typo.h5" Style="color:#f08a7a; font-weight:700;">
+                    @_monatlich.ToString("C2", _de)
+                </MudText>
+                <MudText Typo="Typo.caption" Class="bt-text-muted">Ausgaben-Abos, auf einen Monat gerechnet</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-left:3px solid #d98a2b; border-radius:14px; padding:16px;">
+                <MudText Typo="Typo.caption" Class="bt-text-muted">Davon kündbar</MudText>
+                <MudText Typo="Typo.h5" Style="color:#d98a2b; font-weight:700;">
+                    @_kuendbarMonatlich.ToString("C2", _de)
+                </MudText>
+                <MudText Typo="Typo.caption" class="bt-text-muted">@_kuendbarAnzahl Abos mit Kündigungsweg</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* ---------- Hinweis: Ratenkäufe ---------- *@
+    @if (_ratenkaufAnzahl > 0)
+    {
+        <MudPaper Style="background:#1c1a12; border:1px solid #4a3d1a; border-left:3px solid #d98a2b; border-radius:14px; padding:14px; margin-bottom:16px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+                <MudIcon Icon="@Icons.Material.Filled.Info" Style="color:#d98a2b; flex-shrink:0;" />
+                <div>
+                    <MudText Typo="Typo.body2" Style="font-weight:700; color:#e8d5a8;">
+                        @_ratenkaufAnzahl Ratenkäufe sind keine Abos
+                    </MudText>
+                    <MudText Typo="Typo.caption" Class="bt-text-muted">
+                        Raten laufen bis zur letzten Zahlung und lassen sich nicht kündigen.
+                        Sie stehen hier zur Übersicht, haben aber keinen Kündigungs-Knopf.
+                    </MudText>
+                </div>
+            </div>
+        </MudPaper>
+    }
+
+    @* ---------- Abo-Liste ---------- *@
+    <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-radius:14px; overflow:hidden;">
+        <div style="padding:14px 16px; border-bottom:1px solid #2b2f2d; display:flex; justify-content:space-between; align-items:center;">
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700;">Erkannte Abos</MudText>
+            <MudText Typo="Typo.caption" Class="bt-text-muted">
+                aus deinen Buchungen und gepflegten Posten
+            </MudText>
+        </div>
+
+        @if (!_abos.Any())
+        {
+            <div style="padding:28px; text-align:center;">
+                <MudIcon Icon="@Icons.Material.Filled.Subscriptions" Style="color:#2b2f2d; font-size:2.6rem;" />
+                <MudText Class="bt-pad-muted-italic">Keine wiederkehrenden Zahlungen gefunden</MudText>
+            </div>
+        }
+        else
+        {
+            @foreach (var eintrag in _zeilen)
+            {
+                var a = eintrag.Abo;
+                var farbe = a.Typ == TransactionType.Income ? "#4fbf8b" : "#f08a7a";
+                <div style="padding:12px 16px; border-bottom:1px solid #1f2622; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:180px;">
+                        <div style="font-weight:600; color:#e6eae8;">@a.Name</div>
+                        <div style="font-size:0.72rem; color:#a4aaa7; margin-top:2px;">
+                            @a.Rhythmus · zuletzt @a.LetzteZahlung.ToString("dd.MM.yyyy")
+                            @if (a.Anzahl > 0) { <span>· @a.Anzahl Buchungen</span> }
+                            @if (!string.IsNullOrEmpty(a.Konto)) { <span>· @a.Konto</span> }
+                        </div>
+                        @if (!string.IsNullOrEmpty(eintrag.Grund) && !eintrag.Kuendbar)
+                        {
+                            <div style="font-size:0.7rem; color:#d98a2b; margin-top:3px;">@eintrag.Grund</div>
+                        }
+                    </div>
+
+                    <div style="text-align:right; min-width:92px;">
+                        <div style="color:@farbe; font-weight:700;">@a.Betrag.ToString("C2", _de)</div>
+                        <div style="font-size:0.68rem; color:#a4aaa7;">@a.ProMonat.ToString("C2", _de)/Mon</div>
+                    </div>
+
+                    <div style="min-width:110px; text-align:right;">
+                        @if (eintrag.Kuendbar)
+                        {
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Cancel"
+                                       OnClick="() => VorbereitenAsync(a)">
+                                Kündigen
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Class="bt-text-muted">nicht kündbar</MudText>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </MudPaper>
+
+    @* ---------- Vorbereitete Kündigungen ---------- *@
+    @if (_kuendigungen.Any())
+    {
+        <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-radius:14px; padding:16px; margin-top:16px;">
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700; margin-bottom:10px;">Kündigungen</MudText>
+            @foreach (var k in _kuendigungen)
+            {
+                <div style="padding:10px 0; border-bottom:1px solid #1f2622;">
+                    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                        <div>
+                            <span style="font-weight:600;">@k.AboName</span>
+                            <span style="font-size:0.72rem; color:#a4aaa7;"> · @StatusText(k.Status)</span>
+                            @if (!string.IsNullOrEmpty(k.Empfaenger))
+                            {
+                                <div style="font-size:0.72rem; color:#a4aaa7;">an @k.Empfaenger</div>
+                            }
+                        </div>
+                        @if (k.Status == KuendigungsStatus.Vorbereitet)
+                        {
+                            <div style="display:flex; gap:6px;">
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.Send"
+                                           OnClick="() => FreigebenAsync(k)">
+                                    Freigeben &amp; senden
+                                </MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Default" Size="Size.Small"
+                                           OnClick="() => VerwerfenAsync(k)">
+                                    Verwerfen
+                                </MudButton>
+                            </div>
+                        }
+                    </div>
+                    @if (k.Status == KuendigungsStatus.Vorbereitet && !string.IsNullOrEmpty(k.Text))
+                    {
+                        <pre style="white-space:pre-wrap; font-family:inherit; font-size:0.78rem; color:#c8cfcb; background:#111614; border:1px solid #232a26; border-radius:10px; padding:10px; margin-top:8px;">@k.Text</pre>
+                    }
+                </div>
+            }
+        </MudPaper>
+    }
+}
+
+@code {
+    private static readonly System.Globalization.CultureInfo _de = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+
+    private bool _laedt = true;
+    private List<AboPosten> _abos = new();
+    private List<Zeile> _zeilen = new();
+    private List<Kuendigung> _kuendigungen = new();
+    private List<AboAnbieter> _anbieter = new();
+    private decimal _monatlich, _kuendbarMonatlich;
+    private int _kuendbarAnzahl, _ratenkaufAnzahl;
+
+    /// <summary>Eine Zeile der Abo-Liste mit Kündigungsurteil.</summary>
+    private class Zeile
+    {
+        public AboPosten Abo { get; set; } = null!;
+        public bool Kuendbar { get; set; }
+        public string? Grund { get; set; }
+        public AboAnbieter? Anbieter { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.OnAccountChanged += OnAccountChanged;
+        _anbieter = AboAnbieterWissen.Standard();
+        await LadenAsync();
+    }
+
+    private async void OnAccountChanged()
+    {
+        await LadenAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Abos aus den echten Buchungen ermitteln und je Eintrag entscheiden, ob
+    /// eine Kündigung angeboten wird.
+    /// </summary>
+    private async Task LadenAsync()
+    {
+        _laedt = true;
+        StateHasChanged();
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        var q = db.Transactions
+            .Where(t => !t.IsTransfer && (t.Status == null || t.Status == "" || t.Status == "BOOK"));
+        if (AppState.SelectedAccountId.HasValue)
+            q = q.Where(t => t.AccountId == AppState.SelectedAccountId.Value);
+
+        var buchungen = await q.ToListAsync();
+        var gepflegt = await db.RecurringItems.Where(r => r.IsActive).ToListAsync();
+        var konten = await db.Accounts.ToDictionaryAsync(a => a.Id, a => a.Name);
+
+        _abos = AboErkennung.Finde(buchungen, gepflegt, id => id.HasValue && konten.TryGetValue(id.Value, out var n) ? n : null);
+
+        _zeilen = new List<Zeile>();
+        foreach (var a in _abos)
+        {
+            var anb = AboAnbieterWissen.Finde(_anbieter, a.Name);
+            var (ok, grund) = Kuendigungsregel.Pruefe(a, anb);
+            _zeilen.Add(new Zeile { Abo = a, Kuendbar = ok, Grund = grund, Anbieter = anb });
+        }
+
+        _monatlich = _abos.Where(a => a.Typ == TransactionType.Expense).Sum(a => a.ProMonat);
+        _kuendbarMonatlich = _zeilen
+            .Where(z => z.Kuendbar && z.Abo.Typ == TransactionType.Expense)
+            .Sum(z => z.Abo.ProMonat);
+        _kuendbarAnzahl = _zeilen.Count(z => z.Kuendbar);
+        _ratenkaufAnzahl = _abos.Count(a => Kuendigungsregel.IstRatenkauf(a.Name, a.Verwendungszweck));
+
+        var userId = await AktuellerNutzerAsync(db);
+        _kuendigungen = await Kuendigung.ListeAsync(userId);
+
+        _laedt = false;
+    }
+
+    private static async Task<int> AktuellerNutzerAsync(AppDbContext db)
+    {
+        var email = (Environment.GetEnvironmentVariable("OWNER_EMAIL") ?? "").Trim().ToLowerInvariant();
+        if (email.Length > 0)
+        {
+            var u = await db.Users.FirstOrDefaultAsync(x => x.Username.ToLower() == email);
+            if (u != null) return u.Id;
+        }
+        var erster = await db.Users.OrderBy(x => x.Id).FirstOrDefaultAsync();
+        return erster?.Id ?? 1;
+    }
+
+    /// <summary>
+    /// Kündigung entwerfen — es geht noch nichts raus. Tim sieht den Text und
+    /// entscheidet dann.
+    /// </summary>
+    private async Task VorbereitenAsync(AboPosten a)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var userId = await AktuellerNutzerAsync(db);
+        var anb = AboAnbieterWissen.Finde(_anbieter, a.Name);
+
+        var k = Kuendigung.Entwerfen(a, anb, userId, Math.Abs(a.ProMonat));
+        await Kuendigung.SpeichernAsync(k);
+
+        Snackbar.Add("Kündigung vorbereitet — Text unten prüfen und freigeben.", Severity.Info);
+        await LadenAsync();
+    }
+
+    /// <summary>Freigeben: erst jetzt geht die Mail in die Warteschlange.</summary>
+    private async Task FreigebenAsync(Kuendigung k)
+    {
+        var (ok, meldung) = await Kuendigung.FreigebenAsync(k.Id);
+        Snackbar.Add(meldung, ok ? Severity.Success : Severity.Error);
+        await LadenAsync();
+    }
+
+    private async Task VerwerfenAsync(Kuendigung k)
+    {
+        await Kuendigung.VerwerfenAsync(k.Id);
+        Snackbar.Add("Kündigung verworfen.", Severity.Normal);
+        await LadenAsync();
+    }
+
+    private static string StatusText(KuendigungsStatus s) => s switch
+    {
+        KuendigungsStatus.Offen => "offen",
+        KuendigungsStatus.Vorbereitet => "Entwurf — noch nicht gesendet",
+        KuendigungsStatus.Versendet => "in Warteschlange",
+        KuendigungsStatus.Bestaetigt => "bestätigt",
+        KuendigungsStatus.Fehlgeschlagen => "fehlgeschlagen",
+        KuendigungsStatus.Verworfen => "verworfen",
+        _ => "unbekannt",
+    };
+}

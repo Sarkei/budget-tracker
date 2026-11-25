@@ -179,13 +179,46 @@
     }
     else
     {
-        @foreach (var group in _transactions
-            .GroupBy(t => new { t.Date.Year, t.Date.Month })
-            .OrderByDescending(g => g.Key.Year).ThenByDescending(g => g.Key.Month))
+        @foreach (var group in NachTagen())
         {
-            <div style="font-size:0.72rem; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; color:#a4aaa7; padding:12px 4px 6px;">
-                @(new DateTime(group.Key.Year, group.Key.Month, 1).ToString("MMMM yyyy", _de))
+            /*
+             * Tageskopf statt Monatskopf.
+             *
+             * Tims Vorgabe: „bitte alle einnahmen und ausgaben nach tagen gruppieren".
+             * Der Kopf nennt Tag, Tagessumme und -bilanz, damit man auf einen Blick
+             * sieht, was an dem Tag rein- und rausging. Die Monatsbezeichnung steht
+             * zusätzlich im Kopf, damit man beim Scrollen den Überblick behält.
+             */
+            var tagEinnahmen = group.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
+            var tagAusgaben = group.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+            var tagBilanz = tagEinnahmen - tagAusgaben;
+            var bilanzFarbe = tagBilanz >= 0 ? "#4fbf8b" : "#f08a7a";
+
+            <div class="tx-day-head">
+                <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+                    <span style="font-size:0.78rem; font-weight:900; color:#e6eae8;">
+                        @group.Key.ToString("dd.MM.yyyy")
+                    </span>
+                    <span style="font-size:0.68rem; color:#a4aaa7; text-transform:uppercase; letter-spacing:0.08em;">
+                        @group.Key.ToString("dddd", _de)
+                    </span>
+                    <span style="font-size:0.66rem; color:#5f6b65;">@group.Key.ToString("MMMM yyyy", _de)</span>
+                </div>
+                <div style="display:flex; gap:10px; font-size:0.7rem; align-items:baseline;">
+                    @if (tagEinnahmen > 0)
+                    {
+                        <span style="color:#4fbf8b;">+@tagEinnahmen.ToString("N2", _de)</span>
+                    }
+                    @if (tagAusgaben > 0)
+                    {
+                        <span style="color:#f08a7a;">−@tagAusgaben.ToString("N2", _de)</span>
+                    }
+                    <span style="color:@bilanzFarbe; font-weight:700;">
+                        = @tagBilanz.ToString("N2", _de)
+                    </span>
+                </div>
             </div>
+
             @foreach (var t in group)
             {
                 var isIncome = t.Type == TransactionType.Income;

@@ -60,6 +60,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PasswordResetService>();
 builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddSingleton<GroupNotificationService>();
+// Kündigungen: entwirft Texte und legt sie nach Freigabe in die Mail-Warteschlange.
+builder.Services.AddScoped<KuendigungsService>();
 
 builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(o =>
 {

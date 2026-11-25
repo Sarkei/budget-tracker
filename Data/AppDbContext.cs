@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<GroupSettlement> GroupSettlements { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
     public DbSet<TrustedEmail> TrustedEmails { get; set; }
+    public DbSet<Kuendigung> Kuendigungen { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

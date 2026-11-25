@@ -49,6 +49,26 @@ public static class DatabaseInitializer
         // Einmal-Token für den Passwort-Reset
         Spalte("CREATE TABLE IF NOT EXISTS \"PasswordResets\" (\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_PasswordResets\" PRIMARY KEY AUTOINCREMENT, \"UserId\" INTEGER NOT NULL, \"TokenHash\" TEXT NOT NULL, \"ExpiresAt\" TEXT NOT NULL, \"UsedAt\" TEXT NULL)");
         Spalte("CREATE UNIQUE INDEX IF NOT EXISTS \"IX_PasswordResets_TokenHash\" ON \"PasswordResets\" (\"TokenHash\")");
+
+        /*
+         * Kündigungen. Eigene Tabelle statt Spalten an Transactions: Eine
+         * Kündigung gehört zu einem Abo, nicht zu einer Buchung, und braucht
+         * einen eigenen Zustand (Entwurf, freigegeben, versendet).
+         */
+        Spalte(@"CREATE TABLE IF NOT EXISTS ""Kuendigungen"" (
+            ""Id""             INTEGER NOT NULL CONSTRAINT ""PK_Kuendigungen"" PRIMARY KEY AUTOINCREMENT,
+            ""AboName""        TEXT    NOT NULL,
+            ""Empfaenger""     TEXT    NULL,
+            ""Betreff""        TEXT    NULL,
+            ""Text""           TEXT    NULL,
+            ""Status""         INTEGER NOT NULL DEFAULT 0,
+            ""BetragProMonat"" TEXT    NOT NULL DEFAULT '0',
+            ""ErstelltAm""     TEXT    NOT NULL,
+            ""VersendetAm""    TEXT    NULL,
+            ""Hinweis""        TEXT    NULL,
+            ""UserId""         INTEGER NOT NULL
+        )");
+        Spalte("CREATE INDEX IF NOT EXISTS \"IX_Kuendigungen_UserId\" ON \"Kuendigungen\" (\"UserId\")");
     }
 
     private static void EnsureNewTablesExist(AppDbContext context)

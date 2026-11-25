@@ -593,6 +593,26 @@ html, body, #app, .mud-layout {
     -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Tageskopf in der Buchungsliste.
+ *
+ * Tims Vorgabe: Ein- und Ausgaben nach Tagen gruppieren. Der Kopf trägt Datum,
+ * Wochentag und die Tagessumme, damit man beim Scrollen sofort sieht, was an
+ * einem Tag zusammenkam. Bewusst ruhig gehalten (kein Rahmen), damit die
+ * Buchungskarten darunter die Aufmerksamkeit behalten.
+ */
+.tx-day-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 14px 4px 6px;
+    margin-top: 4px;
+    border-bottom: 1px solid var(--border-muted);
+    font-variant-numeric: tabular-nums;
+}
+
 .tx-card:active {
     background: var(--surface-2);
 }
