@@ -22,50 +22,50 @@
 <!-- Summary cards – DESKTOP (hidden on mobile by .tx-desktop-summary class) -->
 <MudGrid Spacing="3" Class="mb-4 tx-desktop-summary">
     <MudItem xs="12" sm="4">
-        <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-left:3px solid #4fbf8b; border-radius:14px; padding:16px;">
+        <MudPaper Style="background:#1c2015; border:1px solid #2c2c2c; border-left:3px solid #a8b45c; border-radius:14px; padding:16px;">
             <MudText Typo="Typo.caption" Class="bt-text-muted">Einnahmen</MudText>
             <MudText Typo="Typo.h6" Class="bt-text-success" Style="font-weight:700;">@_filteredIncome.ToString("C2", _de)</MudText>
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-left:3px solid #f08a7a; border-radius:14px; padding:16px;">
+        <MudPaper Style="background:#1c2015; border:1px solid #2c2c2c; border-left:3px solid #f08a7a; border-radius:14px; padding:16px;">
             <MudText Typo="Typo.caption" Class="bt-text-muted">Ausgaben</MudText>
             <MudText Typo="Typo.h6" Class="bt-text-error" Style="font-weight:700;">@_filteredExpenses.ToString("C2", _de)</MudText>
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <MudPaper Style="@($"background:#16211c; border:1px solid #2b2f2d; border-left:3px solid {(_filteredBalance >= 0 ? "#4fbf8b" : "#f08a7a")}; border-radius:14px; padding:16px;")">
+        <MudPaper Style="@($"background:#1c2015; border:1px solid #2c2c2c; border-left:3px solid {(_filteredBalance >= 0 ? "#a8b45c" : "#f08a7a")}; border-radius:14px; padding:16px;")">
             <MudText Typo="Typo.caption" Class="bt-text-muted">Bilanz</MudText>
-            <MudText Typo="Typo.h6" Style="@($"color:{(_filteredBalance >= 0 ? "#4fbf8b" : "#f08a7a")}; font-weight:700;")">@_filteredBalance.ToString("C2", _de)</MudText>
+            <MudText Typo="Typo.h6" Style="@($"color:{(_filteredBalance >= 0 ? "#a8b45c" : "#f08a7a")}; font-weight:700;")">@_filteredBalance.ToString("C2", _de)</MudText>
         </MudPaper>
     </MudItem>
 </MudGrid>
 
 <!-- Summary cards – MOBILE horizontal strip -->
 <div class="tx-summary-strip">
-    <div class="tx-summary-card" style="border-left:3px solid #4fbf8b;">
-        <div style="font-size:0.7rem; color:#a4aaa7; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Einnahmen</div>
-        <div style="font-size:1.1rem; color:#4fbf8b; font-weight:700; margin-top:2px;">@_filteredIncome.ToString("C2", _de)</div>
+    <div class="tx-summary-card" style="border-left:3px solid #a8b45c;">
+        <div style="font-size:0.7rem; color:#a8a8a8; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Einnahmen</div>
+        <div style="font-size:1.1rem; color:#a8b45c; font-weight:700; margin-top:2px;">@_filteredIncome.ToString("C2", _de)</div>
     </div>
     <div class="tx-summary-card" style="border-left:3px solid #f08a7a;">
-        <div style="font-size:0.7rem; color:#a4aaa7; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Ausgaben</div>
+        <div style="font-size:0.7rem; color:#a8a8a8; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Ausgaben</div>
         <div style="font-size:1.1rem; color:#f08a7a; font-weight:700; margin-top:2px;">@_filteredExpenses.ToString("C2", _de)</div>
     </div>
-    <div class="tx-summary-card" style="@($"border-left:3px solid {(_filteredBalance >= 0 ? "#4fbf8b" : "#f08a7a")};")">
-        <div style="font-size:0.7rem; color:#a4aaa7; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Bilanz</div>
-        <div style="@($"font-size:1.1rem; color:{(_filteredBalance >= 0 ? "#4fbf8b" : "#f08a7a")}; font-weight:700; margin-top:2px;")">@_filteredBalance.ToString("C2", _de)</div>
+    <div class="tx-summary-card" style="@($"border-left:3px solid {(_filteredBalance >= 0 ? "#a8b45c" : "#f08a7a")};")">
+        <div style="font-size:0.7rem; color:#a8a8a8; text-transform:uppercase; letter-spacing:0.09em; font-weight:800;">Bilanz</div>
+        <div style="@($"font-size:1.1rem; color:{(_filteredBalance >= 0 ? "#a8b45c" : "#f08a7a")}; font-weight:700; margin-top:2px;")">@_filteredBalance.ToString("C2", _de)</div>
     </div>
 </div>
 
 <!-- Filters -->
-<MudPaper Style="background:#16211c; border:1px solid #2b2f2d; border-radius:14px; padding:16px; margin-bottom:16px;">
+<MudPaper Style="background:#1c2015; border:1px solid #2c2c2c; border-radius:14px; padding:16px; margin-bottom:16px;">
     <!-- Mobile: filter toggle header -->
     <div class="tx-filter-toggle-btn" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; margin-bottom:@(_filterOpen ? "12px" : "0");"
          @onclick="() => _filterOpen = !_filterOpen">
         <div style="display:flex; align-items:center; gap:8px;">
             <MudIcon Icon="@Icons.Material.Filled.FilterList" Style="color:#a8dfc4; font-size:18px;" />
             <span style="color:#a8dfc4; font-size:0.78rem; font-weight:900; text-transform:uppercase; letter-spacing:.08em;">Filter</span>
-            <span style="color:#a4aaa7; font-size:0.75rem;">
+            <span style="color:#a8a8a8; font-size:0.75rem;">
                 @(new DateTime(2000, _filterMonth, 1).ToString("MMM", _de)) @_filterYear
                 @(_filterType != "Alle" ? $" · {_filterType}" : "")
             </span>
@@ -123,7 +123,7 @@
 
 <!-- DESKTOP: Transactions table -->
 <div class="tx-desktop-view">
-    <MudPaper Class="tx-table-wrap" Style="background:#16211c; border:1px solid #2b2f2d; border-radius:14px; overflow:hidden;">
+    <MudPaper Class="tx-table-wrap" Style="background:#1c2015; border:1px solid #2c2c2c; border-radius:14px; overflow:hidden;">
         <MudDataGrid T="Transaction" Items="_transactions" Dense="true" Hover="true" Striped="true"
                      Style="background:transparent;" RowStyle="background:transparent;">
             <Columns>
@@ -147,7 +147,7 @@
                 </TemplateColumn>
                 <TemplateColumn Title="Betrag" SortBy="t => t.Amount">
                     <CellTemplate Context="ctx">
-                        <MudText Typo="Typo.body2" Style="@($"color:{(ctx.Item.Type == TransactionType.Income ? "#4fbf8b" : "#f08a7a")}; font-weight:600;")">
+                        <MudText Typo="Typo.body2" Style="@($"color:{(ctx.Item.Type == TransactionType.Income ? "#a8b45c" : "#f08a7a")}; font-weight:600;")">
                             @(ctx.Item.Type == TransactionType.Income ? "+" : "-")@ctx.Item.Amount.ToString("C2", _de)
                         </MudText>
                     </CellTemplate>
@@ -162,7 +162,7 @@
                 </TemplateColumn>
             </Columns>
             <NoRecordsContent>
-                <MudText Style="color:#a4aaa7; padding:24px; text-align:center; font-style:italic;">Keine Transaktionen gefunden</MudText>
+                <MudText Style="color:#a8a8a8; padding:24px; text-align:center; font-style:italic;">Keine Transaktionen gefunden</MudText>
             </NoRecordsContent>
         </MudDataGrid>
     </MudPaper>
@@ -173,7 +173,7 @@
     @if (!_transactions.Any())
     {
         <div style="padding:32px 16px; text-align:center;">
-            <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Style="color:#2b2f2d; font-size:3rem; margin-bottom:12px;" />
+            <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Style="color:#2c2c2c; font-size:3rem; margin-bottom:12px;" />
             <MudText Class="bt-pad-muted-italic">Keine Transaktionen gefunden</MudText>
         </div>
     }
@@ -192,14 +192,14 @@
             var tagEinnahmen = group.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
             var tagAusgaben = group.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
             var tagBilanz = tagEinnahmen - tagAusgaben;
-            var bilanzFarbe = tagBilanz >= 0 ? "#4fbf8b" : "#f08a7a";
+            var bilanzFarbe = tagBilanz >= 0 ? "#a8b45c" : "#f08a7a";
 
             <div class="tx-day-head">
                 <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
                     <span style="font-size:0.78rem; font-weight:900; color:#e6eae8;">
                         @group.Key.ToString("dd.MM.yyyy")
                     </span>
-                    <span style="font-size:0.68rem; color:#a4aaa7; text-transform:uppercase; letter-spacing:0.08em;">
+                    <span style="font-size:0.68rem; color:#a8a8a8; text-transform:uppercase; letter-spacing:0.08em;">
                         @group.Key.ToString("dddd", _de)
                     </span>
                     <span style="font-size:0.66rem; color:#5f6b65;">@group.Key.ToString("MMMM yyyy", _de)</span>
@@ -207,7 +207,7 @@
                 <div style="display:flex; gap:10px; font-size:0.7rem; align-items:baseline;">
                     @if (tagEinnahmen > 0)
                     {
-                        <span style="color:#4fbf8b;">+@tagEinnahmen.ToString("N2", _de)</span>
+                        <span style="color:#a8b45c;">+@tagEinnahmen.ToString("N2", _de)</span>
                     }
                     @if (tagAusgaben > 0)
                     {
@@ -222,7 +222,7 @@
             @foreach (var t in group)
             {
                 var isIncome = t.Type == TransactionType.Income;
-                var amtColor = isIncome ? "#4fbf8b" : "#f08a7a";
+                var amtColor = isIncome ? "#a8b45c" : "#f08a7a";
                 <div class="tx-card">
                     <div class="tx-card-bar" style="@($"background:{amtColor};")"></div>
                     <div class="tx-card-body">
@@ -241,7 +241,7 @@
                                 <span class="tx-card-meta">@t.Date.ToString("dd.MM.yyyy")</span>
                                 @if (t.Category != null)
                                 {
-                                    <span style="font-size:0.7rem; background:#1d2421; color:#a4aaa7; border-radius:8px; padding:2px 8px;">@t.Category.Name</span>
+                                    <span style="font-size:0.7rem; background:#1d2421; color:#a8a8a8; border-radius:8px; padding:2px 8px;">@t.Category.Name</span>
                                 }
                                 @if (t.Account != null)
                                 {

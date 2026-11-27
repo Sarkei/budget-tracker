@@ -20,7 +20,7 @@ else if (_group == null)
 else
 {
     <!-- Print-only header -->
-    <div class="grp-print-header" style="margin-bottom:16px; border-bottom:2px solid #4fbf8b; padding-bottom:8px;">
+    <div class="grp-print-header" style="margin-bottom:16px; border-bottom:2px solid #a8b45c; padding-bottom:8px;">
         <h2 style="margin:0; color:#1f1f1f;">Budget Tracker – @_group.Name – Bericht</h2>
         <p style="margin:4px 0 0; color:#555; font-size:13px;">Zeitraum: @_from.ToString("dd.MM.yyyy", _de) – @_to.ToString("dd.MM.yyyy", _de) &nbsp;·&nbsp; Erstellt am @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</p>
     </div>
@@ -49,7 +49,7 @@ else
         {
             <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" Color="Color.Default"
                            OnClick="PrevMonth" />
-            <MudText Style="color:#e9edeb; min-width:120px; text-align:center; font-weight:600;">
+            <MudText Style="color:#ededed; min-width:120px; text-align:center; font-weight:600;">
                 @_from.ToString("MMMM yyyy", _de)
             </MudText>
             <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Color="Color.Default"
@@ -78,22 +78,22 @@ else
     <!-- KPI cards -->
     <MudGrid Spacing="3" Class="mb-4">
         <MudItem xs="12" sm="4">
-            <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-left:4px solid #f08a7a; border-radius:12px; padding:16px;">
-                <MudText Typo="Typo.caption" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em;">Gesamtausgaben</MudText>
+            <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-left:4px solid #f08a7a; border-radius:12px; padding:16px;">
+                <MudText Typo="Typo.caption" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em;">Gesamtausgaben</MudText>
                 <MudText Typo="Typo.h5" Class="bt-text-error" Style="font-weight:700;">@_totalExpenses.ToString("C2", _de)</MudText>
                 <MudText Typo="Typo.caption" Class="bt-text-muted">@_expenseCount Ausgaben</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="4">
-            <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-left:4px solid #4fbf8b; border-radius:12px; padding:16px;">
-                <MudText Typo="Typo.caption" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em;">Beglichene Schulden</MudText>
+            <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-left:4px solid #a8b45c; border-radius:12px; padding:16px;">
+                <MudText Typo="Typo.caption" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em;">Beglichene Schulden</MudText>
                 <MudText Typo="Typo.h5" Class="bt-text-success" Style="font-weight:700;">@_totalSettled.ToString("C2", _de)</MudText>
                 <MudText Typo="Typo.caption" Class="bt-text-muted">@_settlementCount Zahlungen</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="4">
-            <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-left:4px solid #4fbf8b; border-radius:12px; padding:16px;">
-                <MudText Typo="Typo.caption" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em;">Ø pro Mitglied</MudText>
+            <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-left:4px solid #a8b45c; border-radius:12px; padding:16px;">
+                <MudText Typo="Typo.caption" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em;">Ø pro Mitglied</MudText>
                 <MudText Typo="Typo.h5" Class="bt-text-brand" Style="font-weight:700;">@_avgPerMember.ToString("C2", _de)</MudText>
                 <MudText Typo="Typo.caption" Class="bt-text-muted">@_group.Members.Count Mitglieder</MudText>
             </MudPaper>
@@ -103,31 +103,31 @@ else
     <!-- Per-member breakdown -->
     @if (_memberStats.Any())
     {
-        <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+        <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
             Ausgaben pro Mitglied
         </MudText>
-        <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+        <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:20px;">
             <!-- Desktop table -->
             <div class="gr-desktop-table">
             <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                 <thead>
                     <tr style="border-bottom:1px solid #1d2421; background:#1f1f1f;">
-                        <th style="text-align:left; padding:10px 16px; color:#a4aaa7; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Mitglied</th>
-                        <th style="text-align:right; padding:10px 16px; color:#a4aaa7; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Bezahlt</th>
-                        <th style="text-align:right; padding:10px 16px; color:#a4aaa7; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Schuldet</th>
-                        <th style="text-align:right; padding:10px 16px; color:#a4aaa7; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Saldo</th>
+                        <th style="text-align:left; padding:10px 16px; color:#a8a8a8; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Mitglied</th>
+                        <th style="text-align:right; padding:10px 16px; color:#a8a8a8; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Bezahlt</th>
+                        <th style="text-align:right; padding:10px 16px; color:#a8a8a8; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Schuldet</th>
+                        <th style="text-align:right; padding:10px 16px; color:#a8a8a8; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Saldo</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var stat in _memberStats.OrderByDescending(s => s.Paid))
                     {
-                        var saldoColor = stat.Net > 0.005m ? "#4fbf8b" : stat.Net < -0.005m ? "#f08a7a" : "#a4aaa7";
+                        var saldoColor = stat.Net > 0.005m ? "#a8b45c" : stat.Net < -0.005m ? "#f08a7a" : "#a8a8a8";
                         var isMe = stat.UserId == _currentUserId;
                         <tr style="border-bottom:1px solid #252525;">
                             <td style="padding:10px 16px; color:@(isMe ? "#a8dfc4" : "#B0BEC5"); font-weight:@(isMe ? "600" : "400");">
                                 @(isMe ? "Du" : stat.Name)
                             </td>
-                            <td style="text-align:right; padding:10px 16px; color:#4fbf8b; font-weight:600;">@stat.Paid.ToString("C2", _de)</td>
+                            <td style="text-align:right; padding:10px 16px; color:#a8b45c; font-weight:600;">@stat.Paid.ToString("C2", _de)</td>
                             <td style="text-align:right; padding:10px 16px; color:#f08a7a;">@stat.Owes.ToString("C2", _de)</td>
                             <td style="text-align:right; padding:10px 16px; color:@saldoColor; font-weight:700;">
                                 @(stat.Net >= 0 ? "+" : "")@stat.Net.ToString("C2", _de)
@@ -141,13 +141,13 @@ else
             <div class="gr-mobile-list">
                 @foreach (var stat in _memberStats.OrderByDescending(s => s.Paid))
                 {
-                    var saldoColor = stat.Net > 0.005m ? "#4fbf8b" : stat.Net < -0.005m ? "#f08a7a" : "#a4aaa7";
+                    var saldoColor = stat.Net > 0.005m ? "#a8b45c" : stat.Net < -0.005m ? "#f08a7a" : "#a8a8a8";
                     var isMe = stat.UserId == _currentUserId;
                     <div class="gr-stat-card">
                         <span class="gr-stat-name @(isMe ? "me" : "")">@(isMe ? "Du" : stat.Name)</span>
                         <div class="gr-stat-col">
                             <span class="gr-stat-label">Bezahlt</span>
-                            <span class="gr-stat-value" style="color:#4fbf8b;">@stat.Paid.ToString("C2", _de)</span>
+                            <span class="gr-stat-value" style="color:#a8b45c;">@stat.Paid.ToString("C2", _de)</span>
                         </div>
                         <div class="gr-stat-col">
                             <span class="gr-stat-label">Schuldet</span>
@@ -166,10 +166,10 @@ else
     <!-- Settlement history for period -->
     @if (_periodSettlements.Any())
     {
-        <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+        <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
             Zahlungen im Zeitraum
         </MudText>
-        <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+        <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:20px;">
             @foreach (var s in _periodSettlements.OrderByDescending(x => x.Date))
             {
                 var payerName = s.PayerUserId == _currentUserId ? "Du" : _memberNameById.GetValueOrDefault(s.PayerUserId, "?");
@@ -193,7 +193,7 @@ else
     <!-- Expense list for period -->
     @if (_periodExpenses.Any())
     {
-        <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+        <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
             Ausgaben im Zeitraum
         </MudText>
         <MudPaper Class="bt-panel">
@@ -212,7 +212,7 @@ else
     }
     else if (!_loading)
     {
-        <MudText Style="color:#a4aaa7; font-style:italic; font-size:0.9rem;">Keine Ausgaben im gewählten Zeitraum.</MudText>
+        <MudText Style="color:#a8a8a8; font-style:italic; font-size:0.9rem;">Keine Ausgaben im gewählten Zeitraum.</MudText>
     }
 }
 

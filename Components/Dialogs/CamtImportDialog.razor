@@ -10,7 +10,7 @@
             @if (_step == 2 && _importResult != null)
             {
                 <MudChip T="string" Size="Size.Small"
-                         Style="background:rgba(20,184,166,.15); color:#4fbf8b; margin-left:8px; border:1px solid rgba(20,184,166,.35);">
+                         Style="background:rgba(20,184,166,.15); color:#a8b45c; margin-left:8px; border:1px solid rgba(20,184,166,.35);">
                     @_importResult.DetectedBank
                 </MudChip>
             }
@@ -24,11 +24,11 @@
             <div style="padding:8px 0 16px;">
                 <div style="text-align:center; padding:16px 0 20px;">
                     <MudIcon Icon="@Icons.Material.Filled.Description"
-                             Style="@($"color:{(_selectedFile != null ? "#4fbf8b" : "#4fbf8b")}; font-size:3.5rem; margin-bottom:10px;")" />
-                    <MudText Typo="Typo.body1" Style="color:#e9edeb; margin-bottom:4px;">
+                             Style="@($"color:{(_selectedFile != null ? "#a8b45c" : "#a8b45c")}; font-size:3.5rem; margin-bottom:10px;")" />
+                    <MudText Typo="Typo.body1" Style="color:#ededed; margin-bottom:4px;">
                         CSV-Datei des Kontoauszugs hochladen
                     </MudText>
-                    <MudText Typo="Typo.body2" Style="color:#a4aaa7; margin-bottom:20px;">
+                    <MudText Typo="Typo.body2" Style="color:#a8a8a8; margin-bottom:20px;">
                         Unterstützt: <strong style="color:#a8dfc4;">Sparkasse</strong>,
                         <strong style="color:#a8dfc4;">DKB</strong>,
                         <strong style="color:#a8dfc4;">ING</strong>,
@@ -49,10 +49,10 @@
 
                 @if (_selectedFile != null)
                 {
-                    <div style="background:#16211c; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:16px;">
-                        <div style="padding:10px 14px; border-bottom:1px solid #2b2f2d; display:flex; align-items:center; gap:8px;">
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#4fbf8b; font-size:1.1rem;" />
-                            <span style="color:#4fbf8b; font-weight:600; font-size:0.88rem;">Datei ausgewählt</span>
+                    <div style="background:#1c2015; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:16px;">
+                        <div style="padding:10px 14px; border-bottom:1px solid #2c2c2c; display:flex; align-items:center; gap:8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#a8b45c; font-size:1.1rem;" />
+                            <span style="color:#a8b45c; font-weight:600; font-size:0.88rem;">Datei ausgewählt</span>
                         </div>
                         <table class="camt-file-table">
                             <tbody>
@@ -64,8 +64,8 @@
                         </table>
                     </div>
                     <div style="background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.3); border-radius:12px; padding:12px 16px; display:flex; align-items:flex-start; gap:10px;">
-                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="color:#4fbf8b; font-size:1.2rem; flex-shrink:0; margin-top:2px;" />
-                        <span style="color:#a4aaa7; font-size:0.82rem; line-height:1.5;">
+                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="color:#a8b45c; font-size:1.2rem; flex-shrink:0; margin-top:2px;" />
+                        <span style="color:#a8a8a8; font-size:0.82rem; line-height:1.5;">
                             Klicke auf <strong style="color:#a8dfc4;">Analysieren</strong>, um die Datei auszuwerten.<br />
                             Die KI ordnet Buchungen automatisch den passenden Kategorien zu.
                         </span>
@@ -73,12 +73,12 @@
                 }
                 else
                 {
-                    <div style="background:#16211c; border:1px solid #2b2f2d; border-radius:12px; padding:14px 18px;">
-                        <div style="color:#a4aaa7; font-size:0.72rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">
+                    <div style="background:#1c2015; border:1px solid #2c2c2c; border-radius:12px; padding:14px 18px;">
+                        <div style="color:#a8a8a8; font-size:0.72rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">
                             Export aus dem Online-Banking
                         </div>
-                        <div style="font-size:0.82rem; color:#a4aaa7; line-height:1.6;">
-                            Lade deinen Kontoauszug im <strong style="color:#e9edeb;">CSV-Format (CAMT)</strong> herunter.
+                        <div style="font-size:0.82rem; color:#a8a8a8; line-height:1.6;">
+                            Lade deinen Kontoauszug im <strong style="color:#ededed;">CSV-Format (CAMT)</strong> herunter.
                             Bei der Sparkasse: <em>Umsätze -> Exportieren -> CSV/CAMT</em>.<br />
                             Bei DKB: <em>Konto -> Umsätze -> CSV-Export</em>.<br />
                             Bei ING: <em>Umsätze -> Download -> CSV</em>.
@@ -96,10 +96,10 @@
         {
             <div style="text-align:center; padding:48px 0 40px;">
                 <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.subtitle1" Style="color:#e9edeb; margin-top:20px; font-weight:700;">
+                <MudText Typo="Typo.subtitle1" Style="color:#ededed; margin-top:20px; font-weight:700;">
                     Datei wird analysiert...
                 </MudText>
-                <MudText Style="color:#a4aaa7; font-size:0.84rem; margin-top:6px;">
+                <MudText Style="color:#a8a8a8; font-size:0.84rem; margin-top:6px;">
                     Buchungen werden erkannt und Kategorien zugeordnet
                 </MudText>
             </div>
@@ -115,7 +115,7 @@
                     </span>
                     @if (!string.IsNullOrEmpty(_importResult.SourceIban))
                     {
-                        <MudChip T="string" Size="Size.Small" Style="background:#1f1f1f; color:#a4aaa7; border:1px solid #2b2f2d;">
+                        <MudChip T="string" Size="Size.Small" Style="background:#1f1f1f; color:#a8a8a8; border:1px solid #2c2c2c;">
                             @_importResult.SourceIban
                         </MudChip>
                     }
@@ -125,7 +125,7 @@
                     <MudChip T="string" Size="Size.Small" Color="Color.Success">
                         @_importResult.Rows.Count(r => r.IsSelected) ausgewählt
                     </MudChip>
-                    <span style="color:@(_netSelected >= 0 ? "#4fbf8b" : "#f08a7a"); font-weight:700; font-size:0.9rem; margin-left:auto;">
+                    <span style="color:@(_netSelected >= 0 ? "#a8b45c" : "#f08a7a"); font-weight:700; font-size:0.9rem; margin-left:auto;">
                         Netto: @_netSelected.ToString("C2", _de)
                     </span>
                 </div>
@@ -140,9 +140,9 @@
                 @if (assignedCount > 0)
                 {
                     <div style="background:rgba(102,187,106,0.07); border:1px solid rgba(102,187,106,0.2); border-radius:10px; padding:8px 12px; display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#4fbf8b; font-size:1rem;" />
-                        <span style="color:#a4aaa7; font-size:0.82rem;">
-                            <strong style="color:#4fbf8b;">@assignedCount von @_importResult.Rows.Count Buchungen</strong>
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#a8b45c; font-size:1rem;" />
+                        <span style="color:#a8a8a8; font-size:0.82rem;">
+                            <strong style="color:#a8b45c;">@assignedCount von @_importResult.Rows.Count Buchungen</strong>
                             automatisch kategorisiert (@assignedPct%). Nicht zugeordnete kannst du manuell anpassen.
                         </span>
                     </div>
@@ -158,7 +158,7 @@
                 }
             </MudSelect>
 
-            <div style="max-height:360px; overflow-y:auto; border:1px solid #2b2f2d; border-radius:10px;">
+            <div style="max-height:360px; overflow-y:auto; border:1px solid #2c2c2c; border-radius:10px;">
                 <table class="camt-preview-table">
                     <thead>
                         <tr>
@@ -177,7 +177,7 @@
                         @foreach (var row in _importResult.Rows)
                         {
                             var isIncome = row.Amount > 0;
-                            var amtColor = isIncome ? "#4fbf8b" : "#f08a7a";
+                            var amtColor = isIncome ? "#a8b45c" : "#f08a7a";
                             var hasCat   = row.SuggestedCategoryId.HasValue;
                             <tr class="@(row.IsDuplicate ? "dup-row" : "")">
                                 <td>
@@ -185,11 +185,11 @@
                                                  Size="Size.Small" Color="Color.Secondary"
                                                  Disabled="row.IsDuplicate" />
                                 </td>
-                                <td style="color:#a4aaa7; white-space:nowrap;">@row.BookingDate.ToString("dd.MM.yy")</td>
-                                <td style="color:#e9edeb; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@row.Counterparty">
+                                <td style="color:#a8a8a8; white-space:nowrap;">@row.BookingDate.ToString("dd.MM.yy")</td>
+                                <td style="color:#ededed; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@row.Counterparty">
                                     @(string.IsNullOrWhiteSpace(row.Counterparty) ? row.BookingText : row.Counterparty)
                                 </td>
-                                <td style="color:#a4aaa7; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@row.Purpose">
+                                <td style="color:#a8a8a8; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@row.Purpose">
                                     @(row.Purpose.Length > 70 ? row.Purpose[..67] + "..." : row.Purpose)
                                 </td>
                                 <td>
@@ -197,7 +197,7 @@
                                         @if (hasCat)
                                         {
                                             <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
-                                                     Style="color:#4fbf8b; font-size:0.8rem; flex-shrink:0;" Title="KI-Vorschlag" />
+                                                     Style="color:#a8b45c; font-size:0.8rem; flex-shrink:0;" Title="KI-Vorschlag" />
                                         }
                                         <MudSelect T="int?" Value="row.SuggestedCategoryId"
                                                    ValueChanged="v => row.SuggestedCategoryId = v"
@@ -219,7 +219,7 @@
                 </table>
             </div>
 
-            <div style="margin-top:8px; display:flex; justify-content:space-between; font-size:0.8rem; color:#a4aaa7;">
+            <div style="margin-top:8px; display:flex; justify-content:space-between; font-size:0.8rem; color:#a8a8a8;">
                 <span>@_importResult.Rows.Count(r => r.IsSelected && r.Amount > 0) Einnahmen · @_importResult.Rows.Count(r => r.IsSelected && r.Amount < 0) Ausgaben</span>
                 <span>Doppelte/Deaktiviert: @_importResult.Rows.Count(r => !r.IsSelected)</span>
             </div>
@@ -228,12 +228,12 @@
         else if (_step == 3)
         {
             <div style="text-align:center; padding:40px 0 24px;">
-                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#4fbf8b; font-size:4.5rem; margin-bottom:16px;" />
-                <MudText Typo="Typo.h6" Style="color:#e9edeb; margin-bottom:8px;">Import erfolgreich!</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#a8b45c; font-size:4.5rem; margin-bottom:16px;" />
+                <MudText Typo="Typo.h6" Style="color:#ededed; margin-bottom:8px;">Import erfolgreich!</MudText>
                 <MudText Typo="Typo.body2" Class="bt-text-muted">
-                    <strong style="color:#4fbf8b;">@_importedCount Transaktionen</strong> wurden importiert und sind jetzt in deinen Transaktionen sichtbar.
+                    <strong style="color:#a8b45c;">@_importedCount Transaktionen</strong> wurden importiert und sind jetzt in deinen Transaktionen sichtbar.
                 </MudText>
-                <div style="margin-top:16px; font-size:0.85rem; color:#a4aaa7;">
+                <div style="margin-top:16px; font-size:0.85rem; color:#a8a8a8;">
                     Öffne <strong style="color:#a8dfc4;">Auswertungen -> Kontoauszug-Analyse</strong>, um Muster und Ausgaben zu analysieren.
                 </div>
             </div>

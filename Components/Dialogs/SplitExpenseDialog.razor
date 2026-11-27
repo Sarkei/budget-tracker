@@ -47,19 +47,19 @@
 
             <!-- Split section -->
             <MudItem xs="12">
-                <MudDivider Style="border-color:#2b2f2d;" Class="my-2" />
+                <MudDivider Style="border-color:#2c2c2c;" Class="my-2" />
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
                     <MudText Typo="Typo.subtitle2" Style="color:#a8dfc4; text-transform:uppercase; letter-spacing:.08em; font-weight:800;">Aufteilung</MudText>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <!-- % / € toggle -->
-                        <div style="display:flex; background:#1f1f1f; border:1px solid #2b2f2d; border-radius:10px; overflow:hidden;">
+                        <div style="display:flex; background:#1f1f1f; border:1px solid #2c2c2c; border-radius:10px; overflow:hidden;">
                             <button @onclick='() => SetSplitMode(true)'
                                     style="padding:4px 12px; font-size:12px; font-weight:600; border:none; cursor:pointer;
-                                           background:@(_splitByPercent ? "transparent" : "rgba(20,184,166,.18)"); color:@(_splitByPercent ? "#a4aaa7" : "#4fbf8b");
+                                           background:@(_splitByPercent ? "transparent" : "rgba(20,184,166,.18)"); color:@(_splitByPercent ? "#a8a8a8" : "#a8b45c");
                                            transition:background 0.15s;">€</button>
                             <button @onclick='() => SetSplitMode(false)'
                                     style="padding:4px 12px; font-size:12px; font-weight:600; border:none; cursor:pointer;
-                                           background:@(_splitByPercent ? "rgba(20,184,166,.18)" : "transparent"); color:@(_splitByPercent ? "#4fbf8b" : "#a4aaa7");
+                                           background:@(_splitByPercent ? "rgba(20,184,166,.18)" : "transparent"); color:@(_splitByPercent ? "#a8b45c" : "#a8a8a8");
                                            transition:background 0.15s;">%</button>
                         </div>
                         <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary"
@@ -90,7 +90,7 @@
                         }
                         @if (_splitByPercent && _amount > 0)
                         {
-                            <MudText Typo="Typo.caption" Style="color:#a4aaa7; width:60px; text-align:right;">
+                            <MudText Typo="Typo.caption" Style="color:#a8a8a8; width:60px; text-align:right;">
                                 @split.Amount.ToString("F2") @_currency
                             </MudText>
                         }
@@ -107,7 +107,7 @@
             </MudItem>
             <!-- Recurring expense toggle -->
             <MudItem xs="12">
-                <MudDivider Style="border-color:#2b2f2d;" Class="my-1" />
+                <MudDivider Style="border-color:#2c2c2c;" Class="my-1" />
                 <div style="display:flex; align-items:center; gap:12px; padding:4px 0;">
                     <MudSwitch @bind-Value="_isRecurring" Color="Color.Secondary" Label="Wiederkehrende Ausgabe" />
                 </div>

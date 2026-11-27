@@ -117,7 +117,7 @@ else
                                 <div class="ba-row-title">
                                     @(t.Note ?? "–")
                                 </div>
-                                <div style="font-size:0.72rem; color:#a4aaa7;">
+                                <div style="font-size:0.72rem; color:#a8a8a8;">
                                     @t.Date.ToString("dd.MM.yyyy")
                                     @if (t.Category != null) { <span> · @t.Category.Name</span> }
                                 </div>
@@ -155,8 +155,8 @@ else
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                                 <div style="display:flex; align-items:center; gap:6px;">
                                     <span style="width:10px; height:10px; border-radius:50%; background:@cat.ColorHex; display:inline-block; flex-shrink:0;"></span>
-                                    <span style="font-size:0.85rem; color:#e9edeb;">@cat.CategoryName</span>
-                                    <span style="font-size:0.72rem; color:#a4aaa7;">@sharePct.ToString("F0")%</span>
+                                    <span style="font-size:0.85rem; color:#ededed;">@cat.CategoryName</span>
+                                    <span style="font-size:0.72rem; color:#a8a8a8;">@sharePct.ToString("F0")%</span>
                                 </div>
                                 <span style="font-size:0.88rem; font-weight:600; color:#f08a7a;">
                                     @cat.Total.ToString("C2", _de)
@@ -189,10 +189,10 @@ else
                         <div style="margin-bottom:10px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                                 <div style="min-width:0; flex:1;">
-                                    <span style="font-size:0.85rem; color:#e9edeb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">
+                                    <span style="font-size:0.85rem; color:#ededed; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">
                                         @cp.Name
                                     </span>
-                                    <span style="font-size:0.72rem; color:#a4aaa7;">@cp.Count× Buchungen</span>
+                                    <span style="font-size:0.72rem; color:#a8a8a8;">@cp.Count× Buchungen</span>
                                 </div>
                                 <span style="font-size:0.88rem; font-weight:600; color:#f08a7a; margin-left:12px;">
                                     @cp.Total.ToString("C2", _de)
@@ -217,9 +217,9 @@ else
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                 <thead>
-                    <tr style="color:#a4aaa7;">
+                    <tr style="color:#a8a8a8;">
                         <th style="padding:8px 12px; text-align:left; font-weight:600;">Monat</th>
-                        <th style="padding:8px 12px; text-align:right; font-weight:600; color:#4fbf8b;">Einnahmen</th>
+                        <th style="padding:8px 12px; text-align:right; font-weight:600; color:#a8b45c;">Einnahmen</th>
                         <th style="padding:8px 12px; text-align:right; font-weight:600; color:#f08a7a;">Ausgaben</th>
                         <th style="padding:8px 12px; text-align:right; font-weight:600;">Bilanz</th>
                         <th style="padding:8px 12px; text-align:left; font-weight:600; min-width:120px;">Verlauf</th>
@@ -232,12 +232,12 @@ else
                     @foreach (var m in _monthlyData)
                     {
                         var pctBar = maxMonthExp > 0 ? (double)m.Expenses / (double)maxMonthExp * 100 : 0;
-                        var balColor = m.Balance >= 0 ? "#4fbf8b" : "#f08a7a";
+                        var balColor = m.Balance >= 0 ? "#a8b45c" : "#f08a7a";
                         <tr class="ba-month-row" style="border-bottom:1px solid #1e1e1e;">
-                            <td style="padding:8px 12px; color:#e9edeb; white-space:nowrap;">
+                            <td style="padding:8px 12px; color:#ededed; white-space:nowrap;">
                                 @(new DateTime(_filterYear, m.Month, 1).ToString("MMMM", _de))
                             </td>
-                            <td style="padding:8px 12px; text-align:right; color:#4fbf8b; font-weight:600;">
+                            <td style="padding:8px 12px; text-align:right; color:#a8b45c; font-weight:600;">
                                 @m.Income.ToString("C2", _de)
                             </td>
                             <td style="padding:8px 12px; text-align:right; color:#f08a7a; font-weight:600;">
@@ -374,7 +374,7 @@ else
             .GroupBy(t => new
             {
                 Name  = t.Category?.Name ?? "Ohne Kategorie",
-                Color = t.Category?.ColorHex ?? "#a4aaa7"
+                Color = t.Category?.ColorHex ?? "#a8a8a8"
             })
             .Select(g => new CategoryEntry(g.Key.Name, g.Key.Color, g.Sum(t => t.Amount)))
             .OrderByDescending(c => c.Total)

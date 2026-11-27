@@ -18,11 +18,11 @@
             <div style="padding:8px 0 16px;">
                 <div style="text-align:center; padding:16px 0 20px;">
                     <MudIcon Icon="@Icons.Material.Filled.Description"
-                             Style="@($"color:{(_selectedFile != null ? "#4fbf8b" : "#4fbf8b")}; font-size:3.5rem; margin-bottom:10px;")" />
-                    <MudText Typo="Typo.body1" Style="color:#e9edeb; margin-bottom:4px;">
+                             Style="@($"color:{(_selectedFile != null ? "#a8b45c" : "#a8b45c")}; font-size:3.5rem; margin-bottom:10px;")" />
+                    <MudText Typo="Typo.body1" Style="color:#ededed; margin-bottom:4px;">
                         CSV-Datei mit Ausgabenverlauf hochladen
                     </MudText>
-                    <MudText Typo="Typo.body2" Style="color:#a4aaa7; margin-bottom:20px;">
+                    <MudText Typo="Typo.body2" Style="color:#a8a8a8; margin-bottom:20px;">
                         Für Gruppen-Statistik und Geschichtsverlauf
                     </MudText>
                     <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelectedAsync" Accept=".csv,.txt">
@@ -39,10 +39,10 @@
 
                 @if (_selectedFile != null)
                 {
-                    <div style="background:#16211c; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:16px;">
-                        <div style="padding:10px 14px; border-bottom:1px solid #2b2f2d; display:flex; align-items:center; gap:8px;">
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#4fbf8b; font-size:1.1rem;" />
-                            <span style="color:#4fbf8b; font-weight:600; font-size:0.88rem;">Datei ausgewählt</span>
+                    <div style="background:#1c2015; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:16px;">
+                        <div style="padding:10px 14px; border-bottom:1px solid #2c2c2c; display:flex; align-items:center; gap:8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#a8b45c; font-size:1.1rem;" />
+                            <span style="color:#a8b45c; font-weight:600; font-size:0.88rem;">Datei ausgewählt</span>
                         </div>
                         <table class="gi-file-table">
                             <tbody>
@@ -54,8 +54,8 @@
                     </div>
 
                     <div style="background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.3); border-radius:12px; padding:12px 16px; display:flex; align-items:flex-start; gap:10px;">
-                        <MudIcon Icon="@Icons.Material.Filled.Info" Style="color:#4fbf8b; font-size:1.2rem; flex-shrink:0; margin-top:2px;" />
-                        <span style="color:#a4aaa7; font-size:0.82rem; line-height:1.5;">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Style="color:#a8b45c; font-size:1.2rem; flex-shrink:0; margin-top:2px;" />
+                        <span style="color:#a8a8a8; font-size:0.82rem; line-height:1.5;">
                             <strong>CSV-Format:</strong> Datum;Beschreibung;Benutzername;Betrag;Währung;Notiz<br />
                             <strong>Beispiel:</strong> 01.01.2024;Essen;anna;45.50;EUR;Restaurant<br />
                             <strong>Datum:</strong> dd.MM.yyyy oder yyyy-MM-dd
@@ -64,12 +64,12 @@
                 }
                 else
                 {
-                    <div style="background:#16211c; border:1px solid #2b2f2d; border-radius:12px; padding:14px 18px;">
-                        <div style="color:#a4aaa7; font-size:0.72rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">
+                    <div style="background:#1c2015; border:1px solid #2c2c2c; border-radius:12px; padding:14px 18px;">
+                        <div style="color:#a8a8a8; font-size:0.72rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">
                             Format-Anforderungen
                         </div>
-                        <div style="font-size:0.82rem; color:#a4aaa7; line-height:1.8;">
-                            <div><strong style="color:#e9edeb;">Spalten (durch Semikolon getrennt):</strong></div>
+                        <div style="font-size:0.82rem; color:#a8a8a8; line-height:1.8;">
+                            <div><strong style="color:#ededed;">Spalten (durch Semikolon getrennt):</strong></div>
                             <div>• <strong>Datum:</strong> dd.MM.yyyy oder yyyy-MM-dd</div>
                             <div>• <strong>Beschreibung:</strong> Text der Ausgabe</div>
                             <div>• <strong>Benutzername:</strong> Wer hat bezahlt</div>
@@ -91,10 +91,10 @@
         {
             <div style="text-align:center; padding:48px 0 40px;">
                 <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.subtitle1" Style="color:#e9edeb; margin-top:20px; font-weight:700;">
+                <MudText Typo="Typo.subtitle1" Style="color:#ededed; margin-top:20px; font-weight:700;">
                     Datei wird analysiert...
                 </MudText>
-                <MudText Style="color:#a4aaa7; font-size:0.84rem; margin-top:6px;">
+                <MudText Style="color:#a8a8a8; font-size:0.84rem; margin-top:6px;">
                     Benutzerdaten werden validiert
                 </MudText>
             </div>
@@ -127,7 +127,7 @@
                 }
 
                 <MudText Typo="Typo.subtitle2" Style="color:#a8dfc4; font-weight:700; margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em;">Vorschau</MudText>
-                <div style="max-height:400px; overflow-y:auto; border:1px solid #2b2f2d; border-radius:12px;">
+                <div style="max-height:400px; overflow-y:auto; border:1px solid #2c2c2c; border-radius:12px;">
                     <table class="gi-preview-table">
                         <thead>
                             <tr>
@@ -156,7 +156,7 @@
                                     <td>@row.Description</td>
                                     <td>@row.PaidByUsername</td>
                                     <td>@row.TotalAmount.ToString("N2", _de) @row.Currency</td>
-                                    <td style="@(hasError ? "color:#f08a7a;" : "color:#a4aaa7;")">
+                                    <td style="@(hasError ? "color:#f08a7a;" : "color:#a8a8a8;")">
                                         @if (hasError)
                                         {
                                             <MudIcon Icon="@Icons.Material.Filled.Error" Style="font-size:0.8rem;" />
@@ -169,7 +169,7 @@
                     </table>
                 </div>
 
-                <MudText Typo="Typo.caption" Style="color:#a4aaa7; margin-top:10px; line-height:1.6;">
+                <MudText Typo="Typo.caption" Style="color:#a8a8a8; margin-top:10px; line-height:1.6;">
                     Importierte Ausgaben sind als <strong>Historisch</strong> gekennzeichnet und beeinflussen nicht die aktuellen Schuldenbeträge.
                     Sie werden nur für Statistiken und Berichte verwendet.
                 </MudText>

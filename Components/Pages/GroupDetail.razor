@@ -61,11 +61,11 @@ else
     </div>
 
     <!-- My balance summary (highlighted) -->
-    <MudPaper Style="@($"background:#1b1e1d; border:1px solid #2b2f2d; border-left:4px solid {MyBalanceColor}; border-radius:12px; padding:16px;")"
+    <MudPaper Style="@($"background:#1b1e1d; border:1px solid #2c2c2c; border-left:4px solid {MyBalanceColor}; border-radius:12px; padding:16px;")"
               Class="mb-3">
         <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
             <div style="flex:1;">
-                <MudText Typo="Typo.caption" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em;">Dein Saldo</MudText>
+                <MudText Typo="Typo.caption" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em;">Dein Saldo</MudText>
                 <MudText Typo="Typo.h5" Style="@($"color:{MyBalanceColor}; font-weight:700;")">
                     @(MyBalance > 0.005m ? "+" : "")@(MyBalance < -0.005m ? "-" : "")@Math.Abs(MyBalance).ToString("C2", _de)
                 </MudText>
@@ -78,7 +78,7 @@ else
     {
         var myDebts = GetSimplifiedDebts().Where(d => d.PayerId == _currentUserId).ToList();
         <!-- Schulden begleichen – mobile-friendly card list -->
-        <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-left:4px solid #f08a7a; border-radius:12px; padding:0; margin-bottom:20px; overflow:hidden;">
+        <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-left:4px solid #f08a7a; border-radius:12px; padding:0; margin-bottom:20px; overflow:hidden;">
             <div style="padding:12px 16px 10px; display:flex; align-items:center; gap:8px;">
                 <MudIcon Icon="@Icons.Material.Filled.Warning" Style="color:#f08a7a; font-size:16px;" />
                 <MudText Typo="Typo.caption" Style="color:#f08a7a; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">
@@ -89,8 +89,8 @@ else
             {
                 <div class="gd-debt-item">
                     <div class="gd-debt-name">
-                        <div style="font-weight:600; color:#e9edeb; font-size:0.95rem;">@GetNameById(debt.PayeeId)</div>
-                        <div style="font-size:0.75rem; color:#a4aaa7; margin-top:2px;">Schulden</div>
+                        <div style="font-weight:600; color:#ededed; font-size:0.95rem;">@GetNameById(debt.PayeeId)</div>
+                        <div style="font-size:0.75rem; color:#a8a8a8; margin-top:2px;">Schulden</div>
                     </div>
                     <span class="gd-debt-amount">@debt.Amount.ToString("C2", _de)</span>
                     <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
@@ -108,16 +108,16 @@ else
     }
 
     <!-- Alle Salden -->
-    <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Alle Salden</MudText>
+    <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Alle Salden</MudText>
     <MudGrid Spacing="2" Class="mb-4">
         @foreach (var (userId, balance) in _balances)
         {
-            var bColor = balance > 0.005m ? "#4fbf8b" : balance < -0.005m ? "#f08a7a" : "#a4aaa7";
+            var bColor = balance > 0.005m ? "#a8b45c" : balance < -0.005m ? "#f08a7a" : "#a8a8a8";
             var bLabel = balance > 0.005m ? "bekommt zurück" : balance < -0.005m ? "schuldet" : "ausgeglichen";
             var bName = userId == _currentUserId ? "Du" : GetNameById(userId);
             <MudItem xs="12" sm="6" md="4">
-                <MudPaper Style="@($"background:#1b1e1d; border:1px solid #2b2f2d; border-left:3px solid {bColor}; border-radius:10px; padding:12px 16px;")">
-                    <MudText Typo="Typo.body2" Style="@($"font-weight:600; color:{(userId == _currentUserId ? "#a8dfc4" : "#e9edeb")}")">@bName</MudText>
+                <MudPaper Style="@($"background:#1b1e1d; border:1px solid #2c2c2c; border-left:3px solid {bColor}; border-radius:10px; padding:12px 16px;")">
+                    <MudText Typo="Typo.body2" Style="@($"font-weight:600; color:{(userId == _currentUserId ? "#a8dfc4" : "#ededed")}")">@bName</MudText>
                     <MudText Typo="Typo.h6" Style="@($"color:{bColor}; font-weight:700;")">@Math.Abs(balance).ToString("C2", _de)</MudText>
                     <MudText Typo="Typo.caption" Style="@($"color:{bColor}")">@bLabel</MudText>
                 </MudPaper>
@@ -129,7 +129,7 @@ else
     @if (_settlements.Any())
     {
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-            <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em;">
+            <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em;">
                 Zahlungen (@_settlements.Count)
             </MudText>
             <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
@@ -139,7 +139,7 @@ else
         </div>
         @if (_showSettlements)
         {
-            <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+            <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:20px;">
                 @foreach (var s in _settlements.OrderByDescending(x => x.Date))
                 {
                     var payerName = s.PayerUserId == _currentUserId ? "Du" : GetNameById(s.PayerUserId);
@@ -164,10 +164,10 @@ else
     <!-- Pending invitations -->
     @if (_pendingInvitations.Any())
     {
-        <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+        <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
             Ausstehende Einladungen
         </MudText>
-        <MudPaper Style="background:#1b1e1d; border:1px solid #2b2f2d; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+        <MudPaper Style="background:#1b1e1d; border:1px solid #2c2c2c; border-radius:12px; overflow:hidden; margin-bottom:20px;">
             @foreach (var inv in _pendingInvitations)
             {
                 <div style="display:flex; align-items:center; padding:10px 16px; border-bottom:1px solid #1d2421; gap:10px;">
@@ -180,14 +180,14 @@ else
     }
 
     <!-- Expenses -->
-    <MudText Typo="Typo.subtitle2" Style="color:#a4aaa7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+    <MudText Typo="Typo.subtitle2" Style="color:#a8a8a8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
         Ausgaben & Einnahmen (@_group.Expenses.Count)
     </MudText>
     <MudPaper Class="bt-panel">
         @if (!_group.Expenses.Any())
         {
             <div style="padding:24px; text-align:center;">
-                <MudText Style="color:#a4aaa7; font-style:italic; font-size:0.9rem;">Noch keine Einträge</MudText>
+                <MudText Style="color:#a8a8a8; font-style:italic; font-size:0.9rem;">Noch keine Einträge</MudText>
             </div>
         }
         else
@@ -196,7 +196,7 @@ else
             {
                 var paidByName = e.PaidByUserId == _currentUserId ? "Du" : GetNameById(e.PaidByUserId);
                 var isExpanded = _expandedExpenses.Contains(e.Id);
-                var amtColor = e.IsIncome ? "#4fbf8b" : "#f08a7a";
+                var amtColor = e.IsIncome ? "#a8b45c" : "#f08a7a";
                 var actionLabel = e.IsIncome ? "hat erhalten" : "hat bezahlt";
                 <div style="border-bottom:1px solid #1d2421;">
                     <div style="display:flex; align-items:center; padding:12px 16px; gap:8px;">
@@ -208,7 +208,7 @@ else
                             }
                             else if (e.IsIncome)
                             {
-                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Style="color:#4fbf8b; flex-shrink:0;" />
+                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Style="color:#a8b45c; flex-shrink:0;" />
                             }
                             <div style="flex:1; min-width:0;">
                                 <MudText Typo="Typo.body2" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;">
@@ -222,7 +222,7 @@ else
                                 @(e.IsIncome ? "+" : "")@e.TotalAmount.ToString("C2", _de)
                             </MudText>
                             <MudIcon Icon="@(isExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
-                                     Size="Size.Small" Style="color:#a4aaa7; flex-shrink:0;" />
+                                     Size="Size.Small" Style="color:#a8a8a8; flex-shrink:0;" />
                         </div>
                         @if (_isAdmin)
                         {
@@ -257,7 +257,7 @@ else
                                         var splitName = s.UserId == _currentUserId ? "Du" : GetNameById(s.UserId);
                                         var isMe = s.UserId == _currentUserId;
                                         <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-                                            <MudText Typo="Typo.caption" Style="@($"color:{(isMe ? "#a8dfc4" : "#a4aaa7")}; flex:1;")">
+                                            <MudText Typo="Typo.caption" Style="@($"color:{(isMe ? "#a8dfc4" : "#a8a8a8")}; flex:1;")">
                                                 @splitName
                                             </MudText>
                                             <MudText Typo="Typo.caption" Class="bt-text-muted">
@@ -291,7 +291,7 @@ else
     private HashSet<int> _expandedExpenses = new();
 
     private decimal MyBalance => _balances.TryGetValue(_currentUserId, out var mb) ? mb : 0m;
-    private string MyBalanceColor => MyBalance > 0.005m ? "#4fbf8b" : MyBalance < -0.005m ? "#f08a7a" : "#a4aaa7";
+    private string MyBalanceColor => MyBalance > 0.005m ? "#a8b45c" : MyBalance < -0.005m ? "#f08a7a" : "#a8a8a8";
     private string MyBalanceLabel => MyBalance > 0.005m ? "du bekommst zur\u00fcck" : MyBalance < -0.005m ? "du schuldest" : "ausgeglichen";
 
     protected override async Task OnInitializedAsync()
